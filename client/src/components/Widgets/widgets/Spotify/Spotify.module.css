@@ -1,0 +1,73 @@
+.spotify {
+  flex: 1;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.spotify img {
+  width: 120px;
+  border-radius: 20px;
+}
+
+.spotify .name {
+  font-size: 1.2em;
+  font-weight: bold;
+  margin-top: 10px;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.spotify .artists {
+  font-size: 0.8em;
+  color: #aaa;
+  margin-top: 5px;
+}
+
+.controls {
+  margin-top: 10px;
+}
+
+.controls button {
+  all: unset;
+  display: flex;
+}
+
+.controls button span {
+  font-size: 2em;
+}
+
+.volume {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.volume .slider {
+  width: 200px;
+  height: 10px;
+  background: #ddd;
+  border-radius: 10px;
+  overflow: hidden;
+
+  /* visually centered */
+  margin-left: 5px;
+  margin-right: 10px;
+}
+
+.volume .slider .fill {
+  height: 100%;
+  background: #0064ff;
+  transition: width 200ms ease;
+}
+
+.volume span {
+  font-size: 1.5em;
+}
