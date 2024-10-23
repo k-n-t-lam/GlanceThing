@@ -59,7 +59,8 @@ jobs:
         run: npm run build
 
       - name: Zip the build output
-        run: zip -r /tmp/glancething-client-${GITHUB_REF_NAME}.zip dist/*
+        run: zip -r /tmp/glancething-client-${GITHUB_REF_NAME}.zip ./*
+        working-directory: ./client/dist
 
       - name: Upload the zip to the GitHub Release
         uses: softprops/action-gh-release@v2
