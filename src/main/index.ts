@@ -28,7 +28,8 @@ import {
   findCarThing,
   installApp,
   checkInstalledApp,
-  forwardSocketServer
+  forwardSocketServer,
+  getAdbExecutable
 } from './lib/adb.js'
 import {
   getShortcuts,
@@ -99,6 +100,11 @@ app.on('ready', async () => {
   log('Welcome!', 'GlanceThing')
   if (isDev) log('Running in development mode', 'GlanceThing')
   electronApp.setAppUserModelId('com.bludood.glancething')
+
+  const adbPath = await getAdbExecutable()
+
+  if (adbPath === 'adb') log('Using system adb', 'adb')
+  else log(`Using downloaded ADB from path: ${adbPath}`, 'adb')
 
   if ((await getStorageValue('setupComplete')) === true)
     await startServer()
