@@ -58,8 +58,14 @@
   color: #1ed760;
 }
 
+.state span[data-type='error'] {
+  color: #ff0000;
+}
+
 .state p {
   font-size: 1.2rem;
+  text-align: center;
+  max-width: 500px;
 }
 
 @keyframes appearH {

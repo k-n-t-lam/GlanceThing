@@ -101,10 +101,14 @@ app.on('ready', async () => {
   if (isDev) log('Running in development mode', 'GlanceThing')
   electronApp.setAppUserModelId('com.bludood.glancething')
 
-  const adbPath = await getAdbExecutable()
+  const adbPath = await getAdbExecutable().catch(err => ({ err }))
 
-  if (adbPath === 'adb') log('Using system adb', 'adb')
-  else log(`Using downloaded ADB from path: ${adbPath}`, 'adb')
+  if (typeof adbPath === 'object' && adbPath.err) {
+    log(`Failed to get ADB executable: ${adbPath.err.message}`, 'adb')
+  } else {
+    if (adbPath === 'adb') log('Using system adb', 'adb')
+    else log(`Using downloaded ADB from path: ${adbPath}`, 'adb')
+  }
 
   if ((await getStorageValue('setupComplete')) === true)
     await startServer()
@@ -159,7 +163,8 @@ enum IPCHandler {
 
 async function setupIpcHandlers() {
   ipcMain.handle(IPCHandler.FindCarThing, async () => {
-    const found = await findCarThing()
+    const found = await findCarThing().catch(err => ({ err }))
+    if (typeof found !== 'string' && found?.err) return found.err.message
     return !!found
   })
 
@@ -174,9 +179,8 @@ async function setupIpcHandlers() {
   })
 
   ipcMain.handle(IPCHandler.InstallApp, async () => {
-    const res = await installApp(null).catch(() => false)
-    if (res === false) return false
-
+    const res = await installApp(null).catch(err => ({ err }))
+    if (res?.err) return res.err.message
     return true
   })
 
@@ -212,7 +216,13 @@ async function setupIpcHandlers() {
   )
 
   async function carThingStateUpdate() {
-    const found = await findCarThing()
+    const found = await findCarThing().catch(err => {
+      log(
+        `Got an error while finding CarThing: ${err.message}`,
+        'CarThingState'
+      )
+      return null
+    })
 
     if (found) {
       const installed = await checkInstalledApp(found)

@@ -32,7 +32,7 @@ export async function getWebAppDir() {
 
   if (res.status !== 200) {
     log('Failed to download client webapp', 'Client Webapp')
-    return false
+    throw new Error('webapp_download_failed')
   }
 
   const writeStream = fs.createWriteStream(zipPath)
@@ -48,7 +48,14 @@ export async function getWebAppDir() {
 
   if (!fs.existsSync(extractPath)) fs.mkdirSync(extractPath)
 
-  await execAsync(`tar -xf ${zipPath} -C ${extractPath}`)
+  const extract = await execAsync(
+    `tar -xf ${zipPath} -C ${extractPath}`
+  ).catch(() => null)
+
+  if (extract === null) {
+    log('Failed to extract client webapp', 'Client Webapp')
+    throw new Error('webapp_extract_failed')
+  }
 
   log('Done downloading!', 'Client Webapp')
 

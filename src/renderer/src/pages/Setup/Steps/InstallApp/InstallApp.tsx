@@ -11,17 +11,32 @@ interface InstallAppProps {
 enum State {
   Pending,
   Installing,
-  Complete
+  Complete,
+  Error
+}
+
+const errors = {
+  adb_download_failed:
+    'Failed to download ADB. Make sure you have an active internet connection.',
+  adb_extract_failed: 'Failed to extract ADB.',
+  webapp_download_failed:
+    'Failed to download the GlanceThing client. Make sure you have an active internet connection.',
+  webapp_extract_failed: 'Failed to extract the GlanceThing client.'
 }
 
 const InstallApp: React.FC<InstallAppProps> = ({ onStepComplete }) => {
   const [state, setState] = useState<State>(0)
+  const [error, setError] = useState<string | null>(null)
 
   async function install() {
     setState(State.Installing)
     const res = await window.api.installApp()
     console.log(res)
-    if (!res) return alert('Error')
+    if (res !== true) {
+      setError(errors[res] || 'An unexpected error has occurred!')
+      setState(State.Error)
+      return
+    }
     setState(State.Complete)
   }
 
@@ -53,9 +68,16 @@ const InstallApp: React.FC<InstallAppProps> = ({ onStepComplete }) => {
           <span className="material-icons">check_circle</span>
           <p>Installed!</p>
         </div>
+      ) : state === State.Error ? (
+        <div className={styles.state} key={'error'}>
+          <span className="material-icons" data-type={'error'}>
+            error
+          </span>
+          <p>{error}</p>
+        </div>
       ) : null}
       <div className={styles.buttons}>
-        {state === State.Pending ? (
+        {[State.Pending, State.Error].includes(state) ? (
           <button onClick={install}>Install</button>
         ) : state === State.Complete ? (
           <button onClick={onStepComplete}>Continue</button>

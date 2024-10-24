@@ -12,21 +12,35 @@ enum State {
   Pending,
   Finding,
   Found,
-  NotFound
+  NotFound,
+  Error
+}
+
+const errors = {
+  adb_download_failed:
+    'Failed to download ADB. Make sure you have an active internet connection.',
+  adb_extract_failed: 'Failed to extract ADB.'
 }
 
 const FlashDevice: React.FC<FlashDeviceProps> = ({ onStepComplete }) => {
   const [state, setState] = useState<State>(0)
+  const [error, setError] = useState<string | null>(null)
 
   async function findCarThing() {
     setState(State.Finding)
     const found = await window.api.findCarThing()
+    console.log(found)
+    if (typeof found !== 'boolean') {
+      setError(errors[found] || 'An unexpected error has occurred!')
+      setState(State.Error)
+      return
+    }
     setState(found ? State.Found : State.NotFound)
   }
 
   useEffect(() => {
     window.api.findCarThing().then(found => {
-      if (found) setState(State.Found)
+      if (found === true) setState(State.Found)
     })
   }, [])
 
@@ -62,9 +76,16 @@ const FlashDevice: React.FC<FlashDeviceProps> = ({ onStepComplete }) => {
           </span>
           <p>Could not find CarThing!</p>
         </div>
+      ) : state === State.Error ? (
+        <div className={styles.state} key={'error'}>
+          <span className="material-icons" data-type={'error'}>
+            error
+          </span>
+          <p>{error}</p>
+        </div>
       ) : null}
       <div className={styles.buttons}>
-        {[State.Pending, State.NotFound].includes(state) ? (
+        {[State.Pending, State.NotFound, State.Error].includes(state) ? (
           <button onClick={findCarThing}>Find Car Thing</button>
         ) : state === State.Found ? (
           <button onClick={onStepComplete}>Continue</button>

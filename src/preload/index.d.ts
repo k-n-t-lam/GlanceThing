@@ -12,11 +12,11 @@ declare global {
         channel: string,
         listener: (...args: unknown[]) => void
       ) => () => void
-      findCarThing: () => Promise<boolean>
+      findCarThing: () => Promise<string | boolean>
       findSetupCarThing: () => Promise<
         'not_found' | 'not_installed' | 'ready'
       >
-      installApp: () => Promise<boolean>
+      installApp: () => Promise<string | true>
       startServer: () => Promise<void>
       stopServer: () => Promise<void>
       isServerStarted: () => Promise<boolean>

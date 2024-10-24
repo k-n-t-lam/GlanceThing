@@ -31,8 +31,14 @@ export async function getAdbExecutable() {
   if (fs.existsSync(downloadPath)) fs.unlinkSync(downloadPath)
 
   const download = await axios.get(downloadURL, {
-    responseType: 'stream'
+    responseType: 'stream',
+    validateStatus: () => true
   })
+
+  if (download.status !== 200) {
+    log('Failed to download adb', 'adb')
+    throw new Error('adb_download_failed')
+  }
 
   const writer = fs.createWriteStream(downloadPath)
 
@@ -45,7 +51,14 @@ export async function getAdbExecutable() {
 
   log('Downloaded ADB!', 'adb')
 
-  await execAsync(`tar -xf ${downloadPath} -C ${userDataPath}`)
+  const extract = await execAsync(
+    `tar -xf ${downloadPath} -C ${userDataPath}`
+  )
+
+  if (extract === null) {
+    log('Failed to extract adb', 'adb')
+    throw new Error('adb_extract_failed')
+  }
 
   log('Extracted ADB!', 'adb')
 
@@ -121,8 +134,6 @@ export async function installApp(device: string | null) {
   if (!device) throw new Error('No valid CarThing found')
 
   const appDir = await getWebAppDir()
-
-  if (!appDir) throw new Error('Web app not found')
 
   const WS_PASSWORD = await getSocketPassword()
 
