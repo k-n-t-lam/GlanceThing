@@ -144,7 +144,7 @@ const Apps: React.FC = () => {
         ) : (
           <div className={styles.empty}>
             <span className="material-icons">workspaces</span>
-            <p>Nothing here yet!</p>
+            <p className={styles.title}>Nothing here yet!</p>
             <p className={styles.note}>
               Use the desktop app to add shortcuts.
             </p>

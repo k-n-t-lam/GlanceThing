@@ -190,7 +190,13 @@ const Spotify: React.FC = () => {
           )}
         </>
       ) : (
-        <p>Nothing playing</p>
+        <div className={styles.notPlaying}>
+          <span className="material-icons">music_note</span>
+          <p className={styles.title}>Nothing playing!</p>
+          <p className={styles.note}>
+            Open Spotify on your computer and start playing something.
+          </p>
+        </div>
       )}
     </BaseWidget>
   )

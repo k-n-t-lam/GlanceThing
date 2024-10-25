@@ -71,3 +71,26 @@
 .volume span {
   font-size: 1.5em;
 }
+
+.notPlaying {
+  display: flex;
+  gap: 5px;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.notPlaying span {
+  font-size: 50px;
+  margin-bottom: 5px;
+}
+
+.notPlaying .title {
+  font-size: 26px;
+}
+
+.notPlaying .note {
+  font-size: 20px;
+  color: #aaa;
+  max-width: 80%;
+}
