@@ -71,7 +71,6 @@ const Apps: React.FC = () => {
         const { type, action, data } = JSON.parse(e.data)
         if (type !== 'apps') return
         if (action === 'image') {
-          console.log(data)
           setImages(i => ({ ...i, [data.id]: data.image }))
         } else {
           setApps(data)

@@ -52,7 +52,6 @@ const Spotify: React.FC = () => {
   }
 
   function onWheel(e: WheelEvent<HTMLDivElement>) {
-    console.log(e.deltaX)
     const volume = volumeRef.current
 
     if (e.deltaX < 0) {

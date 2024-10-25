@@ -29,7 +29,6 @@ const FlashDevice: React.FC<FlashDeviceProps> = ({ onStepComplete }) => {
   async function findCarThing() {
     setState(State.Finding)
     const found = await window.api.findCarThing()
-    console.log(found)
     if (typeof found !== 'boolean') {
       setError(errors[found] || 'An unexpected error has occurred!')
       setState(State.Error)

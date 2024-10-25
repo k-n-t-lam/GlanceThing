@@ -31,7 +31,6 @@ const InstallApp: React.FC<InstallAppProps> = ({ onStepComplete }) => {
   async function install() {
     setState(State.Installing)
     const res = await window.api.installApp()
-    console.log(res)
     if (res !== true) {
       setError(errors[res] || 'An unexpected error has occurred!')
       setState(State.Error)
