@@ -1,6 +1,7 @@
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+import { DevModeContext } from '@/contexts/DevModeContext.js'
 import { ModalContext } from '@/contexts/ModalContext.js'
 
 import styles from './Titlebar.module.css'
@@ -9,8 +10,7 @@ const Titlebar: React.FC = () => {
   const navigate = useNavigate()
   const { setSettingsOpen, setShortcutsEditorOpen } =
     useContext(ModalContext)
-
-  const [devMode, setDevMode] = useState(false)
+  const { devMode } = useContext(DevModeContext)
 
   const buttons = [
     ...(devMode
@@ -34,10 +34,6 @@ const Titlebar: React.FC = () => {
       action: () => window.close()
     }
   ]
-
-  useEffect(() => {
-    window.api.isDevMode().then(setDevMode)
-  }, [])
 
   return (
     <div className={styles.titlebar}>

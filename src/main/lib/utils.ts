@@ -1,7 +1,10 @@
 import { exec } from 'child_process'
 import crypto from 'crypto'
 
-export const isDev = process.env.NODE_ENV === 'development'
+import { getStorageValue } from './storage.js'
+
+export const isDev = async () =>
+  (await getStorageValue('devMode')) === true
 
 export const random = (len: number) =>
   crypto.randomBytes(len).toString('hex')

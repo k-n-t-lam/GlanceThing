@@ -1,6 +1,8 @@
 import React, { useContext, useEffect, useRef, useState } from 'react'
 
+import { DevModeContext } from '@/contexts/DevModeContext.js'
 import { ModalContext } from '@/contexts/ModalContext.js'
+
 import Switch from '@/components/Switch/Switch.js'
 
 import styles from './Settings.module.css'
@@ -17,8 +19,9 @@ enum Tab {
 
 const Settings: React.FC = () => {
   const { settingsOpen, setSettingsOpen } = useContext(ModalContext)
+  const { devMode } = useContext(DevModeContext)
+
   const [currentTab, setCurrentTab] = useState<Tab>(Tab.General)
-  const [devMode, setDevMode] = useState(false)
 
   function onClickBackground(e: React.MouseEvent<HTMLDivElement>) {
     if (e.target === e.currentTarget) setSettingsOpen(false)
@@ -31,8 +34,8 @@ const Settings: React.FC = () => {
   }, [settingsOpen, currentTab])
 
   useEffect(() => {
-    window.api.isDevMode().then(setDevMode)
-  }, [])
+    if (!devMode && currentTab === Tab.Advanced) setCurrentTab(Tab.General)
+  })
 
   return (
     <div
@@ -317,6 +320,7 @@ const StartupTab: React.FC = () => {
 }
 
 const AdvancedTab: React.FC = () => {
+  const { setDevMode } = useContext(DevModeContext)
   const [loaded, setLoaded] = useState(false)
   const settings = useRef<{
     disableSocketAuth?: boolean
@@ -338,6 +342,12 @@ const AdvancedTab: React.FC = () => {
     loaded && (
       <div className={styles.settingsTab}>
         <ToggleSetting
+          label="Developer Mode"
+          description="Enables some options for development purposes."
+          defaultValue={true}
+          onChange={() => setDevMode(false)}
+        />
+        <ToggleSetting
           label="Disable WebSocket Authentication"
           description="Allows connections to the WebSocket server without authentication."
           defaultValue={settings.current.disableSocketAuth ?? false}
@@ -351,11 +361,21 @@ const AdvancedTab: React.FC = () => {
 }
 
 const AboutTab: React.FC = () => {
+  const { devMode, setDevMode } = useContext(DevModeContext)
   const [version, setVersion] = useState<string | null>(null)
+  const [timesClicked, setTimesClicked] = useState(0)
 
   useEffect(() => {
     window.api.getVersion().then(setVersion)
   }, [])
+
+  useEffect(() => {
+    if (timesClicked <= 0) return
+
+    if (devMode) return
+
+    if (timesClicked >= 5) setDevMode(true)
+  }, [timesClicked])
 
   return (
     <div className={styles.aboutTab}>
@@ -363,7 +383,12 @@ const AboutTab: React.FC = () => {
         <img src={icon} alt="" />
         <div className={styles.info}>
           <h2>GlanceThing</h2>
-          <p className={styles.version}>Version {version}</p>
+          <p
+            onClick={() => setTimesClicked(t => (t += 1))}
+            className={styles.version}
+          >
+            Version {version}
+          </p>
         </div>
       </div>
       <h2>Credits</h2>

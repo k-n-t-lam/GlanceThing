@@ -97,8 +97,15 @@ function createWindow(): void {
 }
 
 app.on('ready', async () => {
+  if (
+    process.env.NODE_ENV === 'development' &&
+    (await getStorageValue('devMode')) === null
+  ) {
+    await setStorageValue('devMode', true)
+  }
+
   log('Welcome!', 'GlanceThing')
-  if (isDev) log('Running in development mode', 'GlanceThing')
+  if (await isDev()) log('Running in development mode', 'GlanceThing')
   electronApp.setAppUserModelId('com.bludood.glancething')
 
   const adbPath = await getAdbExecutable().catch(err => ({ err }))
@@ -285,8 +292,8 @@ async function setupIpcHandlers() {
     await updateApps()
   })
 
-  ipcMain.handle(IPCHandler.IsDevMode, () => {
-    return isDev
+  ipcMain.handle(IPCHandler.IsDevMode, async () => {
+    return await isDev()
   })
 
   ipcMain.handle(IPCHandler.SetSpotifyToken, async (_event, token) => {

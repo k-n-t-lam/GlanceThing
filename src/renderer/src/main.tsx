@@ -2,6 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { MemoryRouter } from 'react-router-dom'
 
+import { DevModeContextProvider } from './contexts/DevModeContext.js'
 import { ModalContextProvider } from './contexts/ModalContext.js'
 
 import App from './App'
@@ -17,9 +18,11 @@ const root = ReactDOM.createRoot(
 root.render(
   <React.StrictMode>
     <MemoryRouter>
-      <ModalContextProvider>
-        <App />
-      </ModalContextProvider>
+      <DevModeContextProvider>
+        <ModalContextProvider>
+          <App />
+        </ModalContextProvider>
+      </DevModeContextProvider>
     </MemoryRouter>
   </React.StrictMode>
 )
