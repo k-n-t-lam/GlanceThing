@@ -2,6 +2,7 @@ import axios, { AxiosInstance, AxiosResponse } from 'axios'
 import { parse } from 'node-html-parser'
 import EventEmitter from 'events'
 import WebSocket from 'ws'
+import { safeParse } from './utils.js'
 
 async function subscribe(connection_id: string, token: string) {
   return await axios.put(
@@ -28,9 +29,20 @@ export async function getToken(sp_dc: string) {
     },
     validateStatus: () => true
   })
-  return JSON.parse(
-    parse(res.data).querySelector('script#session')!.innerText
-  ).accessToken
+
+  if (res.status !== 200) throw new Error('Invalid sp_dc')
+
+  const html = parse(res.data)
+
+  const script = html.querySelector('script#session')
+
+  if (!script) throw new Error('Invalid sp_dc')
+
+  const json = safeParse(script.innerText)
+
+  if (!json) throw new Error('Invalid sp_dc')
+
+  return json.accessToken
 }
 
 export interface SpotifyCurrentPlayingResponse {
@@ -268,7 +280,7 @@ class SpotifyAPI extends EventEmitter {
       res = await this.instance.put('/me/player/pause')
     }
 
-    return res.status === 204
+    return res.status === 200
   }
 
   async setVolume(volume: number) {

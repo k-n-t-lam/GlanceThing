@@ -117,11 +117,14 @@ export async function startServer() {
         } else if (type === 'spotify') {
           if (!spotify) return
           if (action === 'pause') {
-            await spotify.setPlaying(false)
+            const res = await spotify.setPlaying(false)
+            if (res === false) log('Failed to pause', 'Spotify')
           } else if (action === 'play') {
-            await spotify.setPlaying(true)
+            const res = await spotify.setPlaying(true)
+            if (res === false) log('Failed to play', 'Spotify')
           } else if (action === 'volume') {
-            await spotify.setVolume(data.amount)
+            const res = await spotify.setVolume(data.amount)
+            if (res === false) log('Failed to set volume', 'Spotify')
           } else if (action === 'image') {
             const res = await fetchImage(data.id)
             ws.send(
