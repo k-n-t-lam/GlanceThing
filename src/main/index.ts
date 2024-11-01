@@ -138,8 +138,8 @@ app.on('browser-window-created', (_, window) => {
   optimizer.watchWindowShortcuts(window)
 })
 
-app.on('window-all-closed', (e: Event) => {
-  e.preventDefault()
+app.on('window-all-closed', () => {
+  // don't quit the process
 })
 
 app.on('activate', () => {
