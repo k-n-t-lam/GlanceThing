@@ -21,7 +21,7 @@ let port: number | null = null
 export async function getServerPort() {
   if (port) return port
 
-  port = await findOpenPort()
+  port = (await isDev()) ? 1337 : await findOpenPort()
 
   return port
 }
