@@ -28,6 +28,7 @@
     "node-html-parser": "^6.1.13",
     "party-js": "^2.2.0",
     "react-router-dom": "^6.26.2",
+    "uuid": "^11.0.2",
     "ws": "^8.18.0"
   },
   "devDependencies": {
