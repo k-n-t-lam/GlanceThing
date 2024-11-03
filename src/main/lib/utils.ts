@@ -1,13 +1,13 @@
 import { exec } from 'child_process';
 import { app } from 'electron';
+import { platform } from 'os';
 import crypto from 'crypto';
 import moment from 'moment';
 import path from 'path';
 import net from 'net';
 import fs from 'fs';
 
-import { getStorageValue } from './storage.js';
-import { platform } from 'os';
+import { getStorageValue } from './storage';
 
 export const isDev = async () => (await getStorageValue('devMode')) === true;
 
