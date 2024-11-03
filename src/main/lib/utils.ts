@@ -1,6 +1,9 @@
 import { exec } from 'child_process'
+import { app } from 'electron'
 import crypto from 'crypto'
+import path from 'path'
 import net from 'net'
+import fs from 'fs'
 
 import { getStorageValue } from './storage.js'
 
@@ -22,7 +25,12 @@ export async function execAsync(cmd: string): Promise<string> {
   })
 }
 
+let logPath: string | null = null
+
 export function log(text: string, name?: string) {
+  if (!logPath)
+    logPath = path.join(app.getPath('userData'), 'glancething.log')
+
   const time = new Date().toLocaleTimeString([], {
     hour12: false,
     hour: 'numeric',
@@ -30,7 +38,10 @@ export function log(text: string, name?: string) {
     second: 'numeric'
   })
 
-  console.log(`[${time}]${name ? ` <${name}>:` : ''} ${text}`)
+  const log = `[${time}]${name ? ` <${name}>:` : ''} ${text}`
+
+  console.log(log)
+  fs.appendFileSync(logPath, log + '\n')
 }
 
 export function safeParse(json: string) {
