@@ -104,3 +104,23 @@ export function getLockedPlatformCommand() {
       };
   }
 }
+
+export function getPlatformADB() {
+  const os = platform();
+
+  switch (os) {
+    case 'darwin':
+      return {
+        downloadURL:
+          'https://dl.google.com/android/repository/platform-tools-latest-darwin.zip',
+        executable: 'adb',
+      };
+
+    default:
+      return {
+        downloadURL:
+          'https://dl.google.com/android/repository/platform-tools-latest-windows.zip',
+        executable: 'adb.exe',
+      };
+  }
+}
