@@ -4,7 +4,13 @@ import cron from 'node-cron'
 
 import SpotifyAPI, { fetchImage, filterData } from '../lib/spotify.js'
 import { AuthenticatedWebSocket } from '../types/WebSocketServer.js'
-import { findOpenPort, formatDate, log, safeParse } from '../lib/utils.js'
+import {
+  findOpenPort,
+  formatDate,
+  isDev,
+  log,
+  safeParse
+} from '../lib/utils.js'
 import { getShortcutImage, getShortcuts } from './shortcuts.js'
 import {
   getSocketPassword,
@@ -24,6 +30,23 @@ export async function getServerPort() {
   port = (await isDev()) ? 1337 : await findOpenPort()
 
   return port
+}
+
+export async function updateTime() {
+  if (!wss) return
+
+  wss.clients.forEach(async (ws: AuthenticatedWebSocket) => {
+    if (!ws.authenticated) return
+
+    if (ws.readyState === 1) {
+      ws.send(
+        JSON.stringify({
+          type: 'time',
+          data: await formatDate()
+        })
+      )
+    }
+  })
 }
 
 export async function isServerStarted() {
@@ -61,21 +84,7 @@ export async function startServer() {
     })
   })
 
-  const timeJob = cron.schedule('* * * * *', () => {
-    if (!wss) return
-    wss.clients.forEach((ws: AuthenticatedWebSocket) => {
-      if (!ws.authenticated) return
-
-      if (ws.readyState === 1) {
-        ws.send(
-          JSON.stringify({
-            type: 'time',
-            data: formatDate()
-          })
-        )
-      }
-    })
-  })
+  const timeJob = cron.schedule('* * * * *', updateTime)
 
   const port = await getServerPort()
 
@@ -123,7 +132,7 @@ export async function startServer() {
           ws.send(
             JSON.stringify({
               type: 'time',
-              data: formatDate()
+              data: await formatDate()
             })
           )
         } else if (type === 'spotify') {

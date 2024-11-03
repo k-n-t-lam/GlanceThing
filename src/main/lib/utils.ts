@@ -1,6 +1,7 @@
 import { exec } from 'child_process'
 import { app } from 'electron'
 import crypto from 'crypto'
+import moment from 'moment'
 import path from 'path'
 import net from 'net'
 import fs from 'fs'
@@ -52,18 +53,12 @@ export function safeParse(json: string) {
   }
 }
 
-export function formatDate(d = new Date()) {
-  const time = d.toLocaleTimeString([], {
-    hour12: false,
-    hour: 'numeric',
-    minute: 'numeric'
-  })
+export async function formatDate(d = new Date()) {
+  const timeFormat = (await getStorageValue('timeFormat')) || 'HH:mm'
+  const dateFormat = (await getStorageValue('dateFormat')) || 'ddd, D MMM'
 
-  const date = d.toLocaleDateString([], {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric'
-  })
+  const time = moment(d).format(timeFormat)
+  const date = moment(d).format(dateFormat)
 
   return {
     time,

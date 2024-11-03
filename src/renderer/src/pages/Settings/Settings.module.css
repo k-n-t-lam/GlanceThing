@@ -187,3 +187,30 @@
   color: #1ed760;
   animation: appear 500ms ease;
 }
+
+.selectSetting {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 5px;
+}
+
+.selectSetting .description {
+  font-size: 14px;
+  color: #aaa;
+}
+
+.selectSetting select {
+  padding: 5px;
+  font-size: 16px;
+  border-radius: 5px;
+  background: #222;
+  color: #fff;
+  border: 1px solid #333;
+  transition: 200ms ease;
+}
+
+.selectSetting select:focus {
+  outline: none;
+  border: 1px solid #555;
+}

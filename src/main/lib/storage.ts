@@ -3,13 +3,16 @@ import path from 'path'
 import fs from 'fs'
 
 import { log, random, safeParse } from './utils.js'
+import { updateTime } from './server.js'
 
 const storageValueHandlers: Record<string, (value: unknown) => void> = {
   launchOnStartup: async value => {
     app.setLoginItemSettings({
       openAtLogin: value as boolean
     })
-  }
+  },
+  timeFormat: updateTime,
+  dateFormat: updateTime
 }
 
 async function getStoragePath() {

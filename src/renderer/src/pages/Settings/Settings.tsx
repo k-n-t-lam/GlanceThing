@@ -11,6 +11,7 @@ import icon from '@/assets/icon.png'
 
 enum Tab {
   General,
+  Client,
   Appearance,
   Startup,
   Advanced,
@@ -60,6 +61,13 @@ const Settings: React.FC = () => {
               General
             </button>
             <button
+              onClick={() => setCurrentTab(Tab.Client)}
+              data-active={currentTab === Tab.Client}
+            >
+              <span className="material-icons">devices</span>
+              Client
+            </button>
+            <button
               onClick={() => setCurrentTab(Tab.Appearance)}
               data-active={currentTab === Tab.Appearance}
             >
@@ -93,6 +101,8 @@ const Settings: React.FC = () => {
           <div className={styles.tab}>
             {currentTab === Tab.General ? (
               <GeneralTab />
+            ) : currentTab === Tab.Client ? (
+              <ClientTab />
             ) : currentTab === Tab.Appearance ? (
               <AppearanceTab />
             ) : currentTab === Tab.Startup ? (
@@ -175,6 +185,35 @@ const InputWithSubmitSetting: React.FC<{
   )
 }
 
+const SelectSetting: React.FC<{
+  label: string
+  description?: string
+  defaultValue?: string
+  value?: string
+  options: { value: string; label: string }[]
+  onChange: (value: string) => void
+}> = ({ label, description, defaultValue, value, options, onChange }) => {
+  return (
+    <div className={styles.selectSetting}>
+      <div className={styles.text}>
+        <p className={styles.label}>{label}</p>
+        <p className={styles.description}>{description}</p>
+      </div>
+      <select
+        defaultValue={defaultValue}
+        value={value}
+        onChange={e => onChange(e.target.value)}
+      >
+        {options.map(option => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  )
+}
+
 enum SpotifyStatus {
   Loading,
   Pending,
@@ -243,6 +282,63 @@ const GeneralTab: React.FC = () => {
         ) : spotifyStatus === SpotifyStatus.Valid ? (
           <p className={styles.success}>Token saved!</p>
         ) : null}
+      </div>
+    )
+  )
+}
+
+const ClientTab: React.FC = () => {
+  const [loaded, setLoaded] = useState(false)
+  const settings = useRef<{
+    timeFormat?: string
+    dateFormat?: string
+  }>({})
+
+  useEffect(() => {
+    async function loadSettings() {
+      settings.current = {
+        timeFormat: ((await window.api.getStorageValue('timeFormat')) ||
+          'HH:mm') as string,
+        dateFormat: ((await window.api.getStorageValue('dateFormat')) ||
+          'ddd, D MMM') as string
+      }
+      setLoaded(true)
+    }
+
+    loadSettings()
+  }, [])
+
+  function handleTimeFormatChange(value: string) {
+    window.api.setStorageValue('timeFormat', value)
+  }
+
+  function handleDateFormatChange(value: string) {
+    window.api.setStorageValue('dateFormat', value)
+  }
+
+  return (
+    loaded && (
+      <div className={styles.settingsTab}>
+        <SelectSetting
+          label="Time Format"
+          description="Displayed time format in the titlebar"
+          defaultValue={settings.current.timeFormat}
+          options={[
+            { value: 'HH:mm', label: '24-hour' },
+            { value: 'h:mm A', label: '12-hour' }
+          ]}
+          onChange={handleTimeFormatChange}
+        />
+        <SelectSetting
+          label="Date Format"
+          description="Displayed date format in the titlebar"
+          defaultValue={settings.current.dateFormat}
+          options={[
+            { value: 'ddd, D MMM', label: 'Short' },
+            { value: 'dddd, D MMMM', label: 'Long' }
+          ]}
+          onChange={handleDateFormatChange}
+        />
       </div>
     )
   )
