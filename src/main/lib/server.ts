@@ -4,7 +4,7 @@ import cron from 'node-cron'
 
 import SpotifyAPI, { fetchImage, filterData } from '../lib/spotify.js'
 import { AuthenticatedWebSocket } from '../types/WebSocketServer.js'
-import { formatDate, log, safeParse } from '../lib/utils.js'
+import { findOpenPort, formatDate, log, safeParse } from '../lib/utils.js'
 import { getShortcutImage, getShortcuts } from './shortcuts.js'
 import {
   getSocketPassword,
@@ -15,6 +15,16 @@ import {
 import { restore } from './adb.js'
 
 let wss: WebSocketServer | null = null
+
+let port: number | null = null
+
+export async function getServerPort() {
+  if (port) return port
+
+  port = await findOpenPort()
+
+  return port
+}
 
 export async function isServerStarted() {
   return !!wss
@@ -67,8 +77,10 @@ export async function startServer() {
     })
   })
 
+  const port = await getServerPort()
+
   return new Promise<void>(resolve => {
-    wss = new WebSocketServer({ port: 1337 })
+    wss = new WebSocketServer({ port })
 
     wss.on('connection', async (ws: AuthenticatedWebSocket) => {
       if ((await getStorageValue('disableSocketAuth')) === true)
@@ -201,7 +213,7 @@ export async function startServer() {
     })
 
     wss.on('listening', () => {
-      log('Started on port 1337', 'WebSocketServer')
+      log(`Started on port ${port}`, 'WebSocketServer')
       resolve()
     })
   })

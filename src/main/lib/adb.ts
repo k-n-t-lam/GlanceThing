@@ -6,6 +6,7 @@ import fs from 'fs'
 import { getSocketPassword } from './storage.js'
 import { execAsync, log } from './utils.js'
 import { getWebAppDir } from './webapp.js'
+import { getServerPort } from './server.js'
 
 export async function getAdbExecutable() {
   const res = await execAsync('adb version').catch(() => null)
@@ -175,8 +176,9 @@ export async function forwardSocketServer(device: string | null) {
   if (!device) throw new Error('No valid CarThing found')
 
   const adb = await getAdbExecutable()
+  const port = await getServerPort()
 
-  await execAsync(`${adb} -s ${device} reverse tcp:1337 tcp:1337`)
+  await execAsync(`${adb} -s ${device} reverse tcp:1337 tcp:${port}`)
 
   log('Forwarded socket server!', 'adb')
 }
