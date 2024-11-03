@@ -1,6 +1,7 @@
 .spotify {
   flex: 1;
-  padding: 18px;
+  padding: 16px;
+  padding-top: 28px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -8,9 +9,51 @@
   text-align: center;
 }
 
-.spotify img {
-  width: 120px;
+.spotify .cover {
+  all: unset;
+  position: relative;
+  flex: 1;
   border-radius: 20px;
+  overflow: hidden;
+}
+
+.spotify .cover img {
+  border-radius: 20px;
+  transition: filter 200ms ease;
+}
+
+.spotify .cover .action {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 200ms ease;
+  z-index: 10;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.spotify .cover .action[data-shown='true'] {
+  opacity: 1;
+}
+
+.spotify .cover .action[data-shown='true'] ~ img {
+  filter: blur(5px);
+}
+
+.spotify .cover .action span {
+  position: absolute;
+  font-size: 80px;
+  opacity: 0;
+  transition: opacity 500ms ease;
+}
+
+.spotify .cover .action span[data-shown='true'] {
+  opacity: 1;
 }
 
 .spotify .name {
@@ -27,16 +70,18 @@
 .spotify .artists {
   font-size: 0.8em;
   color: #aaa;
-  margin-top: 5px;
 }
 
 .controls {
-  margin-top: 10px;
+  display: flex;
+  margin-bottom: -10px;
 }
 
 .controls button {
   all: unset;
   display: flex;
+  padding: 12px;
+  z-index: 999;
 }
 
 .controls button span {
@@ -47,25 +92,29 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: 10px;
 }
 
 .volume .slider {
-  width: 200px;
-  height: 10px;
+  width: 225px;
+  height: 12px;
   background: #ddd;
   border-radius: 10px;
   overflow: hidden;
 
   /* visually centered */
-  margin-left: 5px;
-  margin-right: 10px;
+  margin-right: 5px;
 }
 
 .volume .slider .fill {
   height: 100%;
   background: #0064ff;
   transition: width 200ms ease;
+}
+
+.volume button {
+  all: unset;
+  display: flex;
+  padding: 10px;
 }
 
 .volume span {

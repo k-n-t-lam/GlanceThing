@@ -296,5 +296,17 @@ class SpotifyAPI extends EventEmitter {
 
     return res.status === 204
   }
+
+  async next() {
+    const res = await this.instance.post('/me/player/next')
+
+    return res.status === 204
+  }
+
+  async previous() {
+    const res = await this.instance.post('/me/player/previous')
+
+    return res.status === 204
+  }
 }
 export default SpotifyAPI

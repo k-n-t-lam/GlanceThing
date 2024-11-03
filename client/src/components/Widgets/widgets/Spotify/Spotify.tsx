@@ -32,18 +32,91 @@ const Spotify: React.FC = () => {
   const [image, setImage] = useState('')
   const imageRef = useRef(image)
 
-  function onKeyDown(e: KeyboardEvent<HTMLDivElement>) {
-    if (e.key === 'Enter') {
+  const coverClicks = useRef(0)
+  const coverClickTimer = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  )
+
+  const [coverAction, setCoverAction] = useState<
+    'play' | 'pause' | 'forward' | 'back' | null
+  >(null)
+
+  function playPause() {
+    socket?.send(
+      JSON.stringify({
+        type: 'spotify',
+        action: playerDataRef.current?.playing ? 'pause' : 'play'
+      })
+    )
+    setPlayerData({
+      ...playerDataRef.current!,
+      playing: !playerDataRef.current?.playing
+    })
+  }
+
+  function volumeUp() {
+    const volume = volumeRef.current
+
+    if (volume < 100) {
+      const newVolume = Math.min(volume + 10, 100)
+
       socket?.send(
         JSON.stringify({
           type: 'spotify',
-          action: playerDataRef.current?.playing ? 'pause' : 'play'
+          action: 'volume',
+          data: {
+            amount: newVolume
+          }
         })
       )
-      setPlayerData({
-        ...playerDataRef.current!,
-        playing: !playerDataRef.current?.playing
+      setVolume(newVolume)
+      volumeRef.current = newVolume
+      lastVolumeChange.current = Date.now()
+    }
+  }
+
+  function volumeDown() {
+    const volume = volumeRef.current
+
+    if (volume > 0) {
+      const newVolume = Math.max(volume - 10, 0)
+      socket?.send(
+        JSON.stringify({
+          type: 'spotify',
+          action: 'volume',
+          data: {
+            amount: newVolume
+          }
+        })
+      )
+
+      setVolume(newVolume)
+      volumeRef.current = newVolume
+      lastVolumeChange.current = Date.now()
+    }
+  }
+
+  function skipForward() {
+    socket?.send(
+      JSON.stringify({
+        type: 'spotify',
+        action: 'next'
       })
+    )
+  }
+
+  function skipBackward() {
+    socket?.send(
+      JSON.stringify({
+        type: 'spotify',
+        action: 'previous'
+      })
+    )
+  }
+
+  function onKeyDown(e: KeyboardEvent<HTMLDivElement>) {
+    if (e.key === 'Enter') {
+      playPause()
     } else if (e.key === 'ArrowLeft') {
       onWheel({ deltaX: -1 } as WheelEvent<HTMLDivElement>)
     } else if (e.key === 'ArrowRight') {
@@ -52,44 +125,47 @@ const Spotify: React.FC = () => {
   }
 
   function onWheel(e: WheelEvent<HTMLDivElement>) {
-    const volume = volumeRef.current
-
     if (e.deltaX < 0) {
-      if (volume > 0) {
-        const newVolume = Math.max(volume - 10, 0)
-        socket?.send(
-          JSON.stringify({
-            type: 'spotify',
-            action: 'volume',
-            data: {
-              amount: newVolume
-            }
-          })
-        )
-
-        setVolume(newVolume)
-        volumeRef.current = newVolume
-        lastVolumeChange.current = Date.now()
-      }
+      volumeDown()
     } else if (e.deltaX > 0) {
-      if (volume < 100) {
-        const newVolume = Math.min(volume + 10, 100)
-
-        socket?.send(
-          JSON.stringify({
-            type: 'spotify',
-            action: 'volume',
-            data: {
-              amount: newVolume
-            }
-          })
-        )
-        setVolume(newVolume)
-        volumeRef.current = newVolume
-        lastVolumeChange.current = Date.now()
-      }
+      volumeUp()
     }
   }
+
+  function handleCoverPress() {
+    coverClicks.current++
+
+    if (coverClickTimer.current !== null)
+      clearTimeout(coverClickTimer.current)
+
+    coverClickTimer.current = setTimeout(() => {
+      if (coverClicks.current === 1) {
+        setCoverAction(playerDataRef.current?.playing ? 'pause' : 'play')
+        playPause()
+      } else if (coverClicks.current === 2) {
+        setCoverAction('forward')
+        skipForward()
+      } else if (coverClicks.current === 3) {
+        setCoverAction('back')
+        skipBackward()
+      }
+
+      coverClicks.current = 0
+    }, 200)
+  }
+
+  useEffect(() => {
+    console.log(coverAction)
+    if (coverAction) {
+      const timer = setTimeout(() => {
+        setCoverAction(null)
+      }, 500)
+
+      return () => {
+        clearTimeout(timer)
+      }
+    }
+  }, [coverAction])
 
   useEffect(() => {
     if (ready === true && socket) {
@@ -138,7 +214,7 @@ const Spotify: React.FC = () => {
 
   useEffect(() => {
     const listener = (e: globalThis.WheelEvent) => {
-      if (document.activeElement === spotifyRef.current) {
+      if (spotifyRef.current!.matches(':focus-within')) {
         e.preventDefault()
         onWheel({
           deltaX: e.deltaX
@@ -163,28 +239,74 @@ const Spotify: React.FC = () => {
     >
       {playerData ? (
         <>
-          <img src={image} alt={playerData.album.name} />
+          <button onMouseDown={handleCoverPress} className={styles.cover}>
+            <div
+              className={styles.action}
+              data-shown={coverAction !== null}
+            >
+              <span
+                className="material-icons"
+                data-shown={coverAction === 'play'}
+              >
+                play_arrow
+              </span>
+              <span
+                className="material-icons"
+                data-shown={coverAction === 'pause'}
+              >
+                pause
+              </span>
+              <span
+                className="material-icons"
+                data-shown={coverAction === 'forward'}
+              >
+                skip_next
+              </span>
+              <span
+                className="material-icons"
+                data-shown={coverAction === 'back'}
+              >
+                skip_previous
+              </span>
+            </div>
+            <img
+              src={image}
+              onLoad={e =>
+                (e.currentTarget.style.width = `${e.currentTarget.parentElement!.clientHeight}px`)
+              }
+            />
+          </button>
           <span className={styles.name}>{playerData.name}</span>
           <span className={styles.artists}>
             {playerData.artists.map(artist => artist.name).join(', ')}
           </span>
           <div className={styles.controls}>
-            <button>
+            <button onMouseDown={skipBackward}>
+              <span className="material-icons">skip_previous</span>
+            </button>
+            <button onMouseDown={playPause}>
               <span className="material-icons">
                 {playerData.playing ? 'pause' : 'play_arrow'}
               </span>
             </button>
+            <button onMouseDown={skipForward}>
+              <span className="material-icons">skip_next</span>
+            </button>
           </div>
           {playerData.device.supports_volume && (
             <div className={styles.volume}>
-              <span className="material-icons"> volume_down </span>
+              <button onMouseDown={volumeDown}>
+                <span className="material-icons"> volume_down </span>
+              </button>
               <div className={styles.slider}>
                 <div
                   className={styles.fill}
                   style={{ width: `${volume}%` }}
                 ></div>
               </div>
-              <span className="material-icons"> volume_up </span>
+              <button onMouseDown={volumeUp}>
+                <span className="material-icons"> volume_up </span>
+              </button>
             </div>
           )}
         </>

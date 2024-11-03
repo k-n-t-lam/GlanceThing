@@ -134,6 +134,13 @@ export async function startServer() {
                 data: res
               })
             )
+          } else if (action === 'previous') {
+            const res = await spotify.previous()
+            if (res === false)
+              log('Failed to go to previous track', 'Spotify')
+          } else if (action === 'next') {
+            const res = await spotify.next()
+            if (res === false) log('Failed to go to next track', 'Spotify')
           } else {
             const res = await spotify.getCurrent()
             ws.send(
