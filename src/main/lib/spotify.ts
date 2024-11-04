@@ -166,9 +166,7 @@ export async function fetchImage(id: string) {
     responseType: 'arraybuffer'
   })
 
-  return `data:image/jpeg;base64,${Buffer.from(res.data).toString(
-    'base64'
-  )}`
+  return `data:image/jpeg;base64,${Buffer.from(res.data).toString('base64')}`
 }
 
 class SpotifyAPI extends EventEmitter {
