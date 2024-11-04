@@ -7,6 +7,8 @@ import { AuthenticatedWebSocket } from '../types/WebSocketServer.js'
 import {
   findOpenPort,
   formatDate,
+  getLockPlatformCommand,
+  getParsedPlatformCommand,
   isDev,
   log,
   safeParse
@@ -176,8 +178,10 @@ export async function startServer() {
           if (action === 'open') {
             const app = shortcuts.find(app => app.id === data)
             if (app) {
-              exec(`& ${app.command}`, {
-                shell: 'powershell.exe'
+              const { cmd, shell } = getParsedPlatformCommand(app.command)
+
+              exec(cmd, {
+                shell
               })
             }
           } else if (action === 'image') {
@@ -208,7 +212,11 @@ export async function startServer() {
           await setStorageValue('installAutomatically', false)
           await restore(null)
         } else if (type === 'lock') {
-          exec('rundll32.exe user32.dll,LockWorkStation')
+          const { cmd, shell } = getLockPlatformCommand()
+
+          exec(cmd, {
+            shell
+          })
         }
       })
     })

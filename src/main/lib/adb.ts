@@ -1,28 +1,27 @@
 import { app } from 'electron'
+import { platform } from 'os'
 import axios from 'axios'
 import path from 'path'
 import fs from 'fs'
 
+import { execAsync, getPlatformADB, log } from './utils.js'
 import { getSocketPassword } from './storage.js'
-import { execAsync, log } from './utils.js'
-import { getWebAppDir } from './webapp.js'
 import { getServerPort } from './server.js'
+import { getWebAppDir } from './webapp.js'
 
 export async function getAdbExecutable() {
   const res = await execAsync('adb version').catch(() => null)
 
-  if (res) return 'adb'
+  if (res && platform() !== 'darwin') return 'adb'
 
+  const { downloadURL, executable } = getPlatformADB()
   const userDataPath = app.getPath('userData')
   const platformToolsPath = path.join(userDataPath, 'platform-tools')
-  const adbPath = path.join(platformToolsPath, 'adb.exe')
+  const adbPath = path.join(platformToolsPath, executable)
 
   if (fs.existsSync(adbPath)) return `"${adbPath}"`
 
   log('Downloading ADB...', 'adb')
-
-  const downloadURL =
-    'https://dl.google.com/android/repository/platform-tools-latest-windows.zip'
 
   const downloadPath = path.join(
     app.getPath('temp'),
@@ -53,7 +52,7 @@ export async function getAdbExecutable() {
   log('Downloaded ADB!', 'adb')
 
   const extract = await execAsync(
-    `tar -xf ${downloadPath} -C ${userDataPath}`
+    `tar -xf ${downloadPath} -C "${userDataPath}"`
   )
 
   if (extract === null) {

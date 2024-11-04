@@ -1,5 +1,6 @@
 import { exec } from 'child_process'
 import { app } from 'electron'
+import { platform } from 'os'
 import crypto from 'crypto'
 import moment from 'moment'
 import path from 'path'
@@ -75,4 +76,54 @@ export async function findOpenPort() {
       server.close(() => resolve(port))
     })
   })
+}
+
+export function getParsedPlatformCommand(command: string) {
+  const os = platform()
+
+  switch (os) {
+    case 'darwin':
+      return { cmd: command, shell: '/bin/sh' }
+
+    default:
+      return { cmd: `& ${command}`, shell: 'powershell.exe' }
+  }
+}
+
+export function getLockPlatformCommand() {
+  const os = platform()
+
+  switch (os) {
+    case 'darwin':
+      return {
+        cmd: 'pmset displaysleepnow',
+        shell: '/bin/sh'
+      }
+
+    default:
+      return {
+        cmd: 'rundll32.exe user32.dll,LockWorkStation',
+        shell: 'powershell.exe'
+      }
+  }
+}
+
+export function getPlatformADB() {
+  const os = platform()
+
+  switch (os) {
+    case 'darwin':
+      return {
+        downloadURL:
+          'https://dl.google.com/android/repository/platform-tools-latest-darwin.zip',
+        executable: 'adb'
+      }
+
+    default:
+      return {
+        downloadURL:
+          'https://dl.google.com/android/repository/platform-tools-latest-windows.zip',
+        executable: 'adb.exe'
+      }
+  }
 }
