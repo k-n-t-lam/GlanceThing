@@ -110,8 +110,6 @@ app.on('ready', async () => {
 
   const adbPath = await getAdbExecutable().catch(err => ({ err }))
 
-  console.log('adbPath', adbPath)
-
   if (typeof adbPath === 'object' && adbPath.err) {
     log(`Failed to get ADB executable: ${adbPath.err.message}`, 'adb')
   } else {

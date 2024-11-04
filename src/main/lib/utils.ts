@@ -7,7 +7,7 @@ import path from 'path'
 import net from 'net'
 import fs from 'fs'
 
-import { getStorageValue } from './storage'
+import { getStorageValue } from './storage.js'
 
 export const isDev = async () =>
   (await getStorageValue('devMode')) === true
@@ -78,7 +78,7 @@ export async function findOpenPort() {
   })
 }
 
-export function getParsedPlatformCommand(command) {
+export function getParsedPlatformCommand(command: string) {
   const os = platform()
 
   switch (os) {
@@ -90,7 +90,7 @@ export function getParsedPlatformCommand(command) {
   }
 }
 
-export function getLockedPlatformCommand() {
+export function getLockPlatformCommand() {
   const os = platform()
 
   switch (os) {

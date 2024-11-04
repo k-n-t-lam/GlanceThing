@@ -1,13 +1,13 @@
 import { app } from 'electron'
+import { platform } from 'os'
 import axios from 'axios'
 import path from 'path'
 import fs from 'fs'
 
-import { getSocketPassword } from './storage.js'
 import { execAsync, getPlatformADB, log } from './utils.js'
-import { getWebAppDir } from './webapp.js'
+import { getSocketPassword } from './storage.js'
 import { getServerPort } from './server.js'
-import { platform } from 'os'
+import { getWebAppDir } from './webapp.js'
 
 export async function getAdbExecutable() {
   const res = await execAsync('adb version').catch(() => null)

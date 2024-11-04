@@ -2,8 +2,8 @@ import { app, safeStorage } from 'electron'
 import path from 'path'
 import fs from 'fs'
 
-import { log, random, safeParse } from './utils'
-import { updateTime } from './server'
+import { log, random, safeParse } from './utils.js'
+import { updateTime } from './server.js'
 
 const storageValueHandlers: Record<string, (value: unknown) => void> = {
   launchOnStartup: async value => {

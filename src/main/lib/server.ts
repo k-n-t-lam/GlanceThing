@@ -7,7 +7,7 @@ import { AuthenticatedWebSocket } from '../types/WebSocketServer.js'
 import {
   findOpenPort,
   formatDate,
-  getLockedPlatformCommand,
+  getLockPlatformCommand,
   getParsedPlatformCommand,
   isDev,
   log,
@@ -212,7 +212,7 @@ export async function startServer() {
           await setStorageValue('installAutomatically', false)
           await restore(null)
         } else if (type === 'lock') {
-          const { cmd, shell } = getLockedPlatformCommand()
+          const { cmd, shell } = getLockPlatformCommand()
 
           exec(cmd, {
             shell
