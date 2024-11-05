@@ -86,6 +86,23 @@ export async function startServer() {
     })
   })
 
+  spotify.on('DEVICE_STATE_CHANGED', data => {
+    if (data.devices.some(d => d.is_active)) return
+    if (!wss) return
+    wss.clients.forEach((ws: AuthenticatedWebSocket) => {
+      if (!ws.authenticated) return
+
+      if (ws.readyState === 1) {
+        ws.send(
+          JSON.stringify({
+            type: 'spotify',
+            data: { session: false }
+          })
+        )
+      }
+    })
+  })
+
   const timeJob = cron.schedule('* * * * *', updateTime)
 
   const port = await getServerPort()
