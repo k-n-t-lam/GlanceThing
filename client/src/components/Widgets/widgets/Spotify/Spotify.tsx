@@ -57,6 +57,8 @@ const Spotify: React.FC = () => {
   }
 
   function volumeUp() {
+    if (playerDataRef.current === null) return
+
     const volume = volumeRef.current
 
     if (volume < 100) {
@@ -78,6 +80,8 @@ const Spotify: React.FC = () => {
   }
 
   function volumeDown() {
+    if (playerDataRef.current === null) return
+
     const volume = volumeRef.current
 
     if (volume > 0) {
@@ -99,6 +103,8 @@ const Spotify: React.FC = () => {
   }
 
   function skipForward() {
+    if (playerDataRef.current === null) return
+
     socket?.send(
       JSON.stringify({
         type: 'spotify',
@@ -108,6 +114,8 @@ const Spotify: React.FC = () => {
   }
 
   function skipBackward() {
+    if (playerDataRef.current === null) return
+
     socket?.send(
       JSON.stringify({
         type: 'spotify',
@@ -157,7 +165,6 @@ const Spotify: React.FC = () => {
   }
 
   useEffect(() => {
-    console.log(coverAction)
     if (coverAction) {
       const timer = setTimeout(() => {
         setCoverAction(null)
@@ -181,7 +188,10 @@ const Spotify: React.FC = () => {
         } else {
           if (!data) return
 
-          if (data.session == false) return setPlayerData(null)
+          if (data.session == false) {
+            playerDataRef.current = null
+            return setPlayerData(null)
+          }
           setPlayerData(data)
           playerDataRef.current = data
 
