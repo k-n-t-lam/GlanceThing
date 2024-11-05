@@ -42,6 +42,8 @@ const Spotify: React.FC = () => {
   >(null)
 
   function playPause() {
+    if (playerDataRef.current === null) return
+
     socket?.send(
       JSON.stringify({
         type: 'spotify',
