@@ -2,7 +2,7 @@ import axios, { AxiosInstance, AxiosResponse } from 'axios'
 import { parse } from 'node-html-parser'
 import EventEmitter from 'events'
 import WebSocket from 'ws'
-import { safeParse } from './utils.js'
+import { log, safeParse } from './utils.js'
 
 async function subscribe(connection_id: string, token: string) {
   return await axios.put(
@@ -190,20 +190,15 @@ class SpotifyAPI extends EventEmitter {
       return config
     })
 
-    this.instance.interceptors.response.use(
-      res => res,
-      async err => {
-        if (err.response?.status === 401) {
-          this.token = await getToken(this.sp_dc)
-          this.ws = new WebSocket(
-            `wss://dealer.spotify.com/?access_token=${this.token}`
-          )
-          this.setup()
-          return this.instance(err.config)
-        }
-        return Promise.reject(err)
+    this.instance.interceptors.response.use(async res => {
+      if (res.status === 401) {
+        log('Refreshing token...', 'Spotify')
+        this.token = await getToken(this.sp_dc)
+        return this.instance(res.config)
       }
-    )
+
+      return res
+    })
 
     this.start()
   }
