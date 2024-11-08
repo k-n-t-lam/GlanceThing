@@ -83,7 +83,7 @@ export function setStorageValue(
   value: unknown,
   secure = false
 ) {
-  log(`Setting value for key: ${key}`, 'Storage')
+  log(`Setting value for key: ${key}`, 'Storage', LogLevel.DEBUG)
   if (secure) {
     if (!safeStorage.isEncryptionAvailable()) {
       log(

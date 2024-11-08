@@ -131,7 +131,7 @@ async function restartChromium(device: string | null) {
   await execAsync(
     `${adb} -s ${device} shell "supervisorctl restart chromium"`
   )
-  log('Restarted Chromium!', 'adb')
+  log('Restarted Chromium!', 'adb', LogLevel.DEBUG)
 }
 
 export async function setAutoBrightness(
@@ -221,7 +221,7 @@ export async function restore(device: string | null, restart = true) {
     `${adb} -s ${device} shell "mountpoint /usr/share/qt-superbird-app/webapp/ > /dev/null && umount /usr/share/qt-superbird-app/webapp"`
   )
   await execAsync(`${adb} -s ${device} shell "rm -rf /tmp/webapp"`)
-  log('Restored original app!', 'adb')
+  log('Restored original app!', 'adb', LogLevel.DEBUG)
   if (restart) await restartChromium(device)
 }
 
@@ -237,7 +237,7 @@ export async function installApp(device: string | null) {
 
   const adb = await getAdbExecutable()
 
-  log('Installing app...', 'adb', LogLevel.DEBUG)
+  log('Installing app...', 'adb')
   await execAsync(`${adb} -s ${device} push ${appDir} /tmp/webapp`)
   await execAsync(
     `${adb} -s ${device} shell "echo ${WS_PASSWORD} > /tmp/webapp/ws-password"`
@@ -248,9 +248,8 @@ export async function installApp(device: string | null) {
   await execAsync(
     `${adb} -s ${device} shell "mount --bind /tmp/webapp /usr/share/qt-superbird-app/webapp"`
   )
-  log('Installed app!', 'adb')
-
   await restartChromium(device)
+  log('Installed app!', 'adb')
 }
 
 export async function checkInstalledApp(device: string | null) {
