@@ -214,6 +214,55 @@ const SelectSetting: React.FC<{
   )
 }
 
+const SliderSetting: React.FC<{
+  label: string
+  description?: string
+  disabled?: boolean
+  defaultValue?: number
+  value?: number
+  min: number
+  max: number
+  step: number
+  onChange?: (value: number) => void
+  onRelease?: (value: number) => void
+}> = ({
+  label,
+  description,
+  disabled,
+  defaultValue,
+  value,
+  min,
+  max,
+  step,
+  onChange,
+  onRelease
+}) => {
+  return (
+    <div className={styles.sliderSetting} data-disabled={disabled}>
+      <div className={styles.text}>
+        <p className={styles.label}>{label}</p>
+        <p className={styles.description}>{description}</p>
+      </div>
+      <input
+        type="range"
+        defaultValue={defaultValue}
+        value={value}
+        min={min}
+        max={max}
+        step={step}
+        onChange={
+          onChange ? e => onChange(Number(e.target.value)) : undefined
+        }
+        onMouseUp={
+          onRelease
+            ? e => onRelease(Number(e.currentTarget.value))
+            : undefined
+        }
+      />
+    </div>
+  )
+}
+
 enum SpotifyStatus {
   Loading,
   Pending,
@@ -292,7 +341,11 @@ const ClientTab: React.FC = () => {
   const settings = useRef<{
     timeFormat?: string
     dateFormat?: string
+    autoBrightness?: boolean
+    brightness?: number
   }>({})
+
+  const [autoBrightness, setAutoBrightness] = useState(false)
 
   useEffect(() => {
     async function loadSettings() {
@@ -300,8 +353,12 @@ const ClientTab: React.FC = () => {
         timeFormat: ((await window.api.getStorageValue('timeFormat')) ||
           'HH:mm') as string,
         dateFormat: ((await window.api.getStorageValue('dateFormat')) ||
-          'ddd, D MMM') as string
+          'ddd, D MMM') as string,
+        autoBrightness:
+          (await window.api.getStorageValue('autoBrightness')) === true,
+        brightness: await window.api.getBrightness()
       }
+      setAutoBrightness(settings.current.autoBrightness ?? false)
       setLoaded(true)
     }
 
@@ -338,6 +395,25 @@ const ClientTab: React.FC = () => {
             { value: 'dddd, D MMMM', label: 'Long' }
           ]}
           onChange={handleDateFormatChange}
+        />
+        <ToggleSetting
+          label="Auto Brightness"
+          description="Automatically adjust the brightness"
+          defaultValue={settings.current.autoBrightness ?? false}
+          onChange={value => {
+            window.api.setStorageValue('autoBrightness', value)
+            setAutoBrightness(value)
+          }}
+        />
+        <SliderSetting
+          label="Brightness"
+          description="Adjust the brightness of the screen"
+          disabled={autoBrightness}
+          defaultValue={settings.current.brightness}
+          min={0}
+          max={1}
+          step={0.05}
+          onRelease={value => window.api.setBrightness(value)}
         />
       </div>
     )

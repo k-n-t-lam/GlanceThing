@@ -33,6 +33,8 @@ declare global {
       updateShortcut: (shortcut: Shortcut) => Promise<void>
       isDevMode: () => Promise<boolean>
       setSpotifyToken: (token: string) => Promise<boolean>
+      getBrightness: () => Promise<number>
+      setBrightness: (brightness: number) => Promise<void>
     }
   }
 }

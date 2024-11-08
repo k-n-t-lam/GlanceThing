@@ -3,6 +3,7 @@ import path from 'path'
 import fs from 'fs'
 
 import { log, random, safeParse } from './utils.js'
+import { setAutoBrightness } from './adb.js'
 import { updateTime } from './server.js'
 
 const storageValueHandlers: Record<string, (value: unknown) => void> = {
@@ -12,7 +13,10 @@ const storageValueHandlers: Record<string, (value: unknown) => void> = {
     })
   },
   timeFormat: updateTime,
-  dateFormat: updateTime
+  dateFormat: updateTime,
+  autoBrightness: async value => {
+    await setAutoBrightness(null, value as boolean)
+  }
 }
 
 async function getStoragePath() {

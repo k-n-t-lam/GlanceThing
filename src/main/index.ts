@@ -29,7 +29,9 @@ import {
   installApp,
   checkInstalledApp,
   forwardSocketServer,
-  getAdbExecutable
+  getAdbExecutable,
+  getBrightness,
+  setBrightnessSmooth
 } from './lib/adb.js'
 import {
   getShortcuts,
@@ -165,7 +167,9 @@ enum IPCHandler {
   RemoveShortcut = 'removeShortcut',
   UpdateShortcut = 'updateShortcut',
   IsDevMode = 'isDevMode',
-  SetSpotifyToken = 'setSpotifyToken'
+  SetSpotifyToken = 'setSpotifyToken',
+  GetBrightness = 'getBrightness',
+  SetBrightness = 'setBrightness'
 }
 
 async function setupIpcHandlers() {
@@ -305,6 +309,14 @@ async function setupIpcHandlers() {
     } else {
       return false
     }
+  })
+
+  ipcMain.handle(IPCHandler.GetBrightness, async () => {
+    return await getBrightness(null)
+  })
+
+  ipcMain.handle(IPCHandler.SetBrightness, async (_event, value) => {
+    return await setBrightnessSmooth(null, value)
   })
 }
 

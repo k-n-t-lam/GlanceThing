@@ -114,6 +114,82 @@ async function restartChromium(device: string | null) {
   log('Restarted Chromium!', 'adb')
 }
 
+export async function setAutoBrightness(
+  device: string | null,
+  enabled: boolean
+) {
+  if (!device) device = await findCarThing()
+  if (!device) throw new Error('No valid CarThing found')
+
+  const adb = await getAdbExecutable()
+
+  await execAsync(
+    `${adb} -s ${device} shell "supervisorctl ${enabled ? 'start' : 'stop'} backlight"`
+  )
+}
+
+function parseBrightness(brightness: string) {
+  return 1 - parseInt(brightness) / 255
+}
+
+function formatBrightness(brightness: number) {
+  return 255 - Math.round(brightness * 255)
+}
+
+export async function getBrightness(device: string | null, parse = true) {
+  if (!device) device = await findCarThing()
+  if (!device) throw new Error('No valid CarThing found')
+
+  const adb = await getAdbExecutable()
+
+  const res = await execAsync(
+    `${adb} -s ${device} shell "cat /sys/devices/platform/backlight/backlight/aml-bl/brightness"`
+  )
+
+  return parse ? parseBrightness(res) : parseInt(res)
+}
+
+export async function setBrightness(
+  device: string | null,
+  brightness: number
+) {
+  if (!device) device = await findCarThing()
+  if (!device) throw new Error('No valid CarThing found')
+
+  const adb = await getAdbExecutable()
+
+  const formatted = formatBrightness(brightness)
+
+  await execAsync(
+    `${adb} -s ${device} shell "echo ${formatted} > /sys/devices/platform/backlight/backlight/aml-bl/brightness"`
+  )
+}
+
+export async function setBrightnessSmooth(
+  device: string | null,
+  brightness: number
+) {
+  if (!device) device = await findCarThing()
+  if (!device) throw new Error('No valid CarThing found')
+
+  const adb = await getAdbExecutable()
+
+  const currentValue = await getBrightness(device, false)
+  const targetValue = Math.max(formatBrightness(brightness), 1)
+
+  const steps = 10
+
+  for (let i = 1; i <= steps; i++) {
+    const value = Math.round(
+      currentValue + (targetValue - currentValue) * (i / steps)
+    )
+
+    await execAsync(
+      `${adb} -s ${device} shell "echo ${value} > /sys/devices/platform/backlight/backlight/aml-bl/brightness"`
+    )
+  }
+}
+
 export async function restore(device: string | null, restart = true) {
   if (!device) device = await findCarThing()
   if (!device) throw new Error('No valid CarThing found')

@@ -26,7 +26,9 @@ enum IPCHandler {
   RemoveShortcut = 'removeShortcut',
   UpdateShortcut = 'updateShortcut',
   IsDevMode = 'isDevMode',
-  SetSpotifyToken = 'setSpotifyToken'
+  SetSpotifyToken = 'setSpotifyToken',
+  GetBrightness = 'getBrightness',
+  SetBrightness = 'setBrightness'
 }
 
 // Custom APIs for renderer
@@ -66,7 +68,10 @@ const api = {
     ipcRenderer.invoke(IPCHandler.UpdateShortcut, shortcut),
   isDevMode: () => ipcRenderer.invoke(IPCHandler.IsDevMode),
   setSpotifyToken: (token: string) =>
-    ipcRenderer.invoke(IPCHandler.SetSpotifyToken, token)
+    ipcRenderer.invoke(IPCHandler.SetSpotifyToken, token),
+  getBrightness: () => ipcRenderer.invoke(IPCHandler.GetBrightness),
+  setBrightness: (brightness: number) =>
+    ipcRenderer.invoke(IPCHandler.SetBrightness, brightness)
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to
