@@ -4,7 +4,13 @@ import axios from 'axios'
 import path from 'path'
 import fs from 'fs'
 
-import { execAsync, getPlatformADB, log, LogLevel } from './utils.js'
+import {
+  execAsync,
+  getLogLevel,
+  getPlatformADB,
+  log,
+  LogLevel
+} from './utils.js'
 import { getSocketPassword } from './storage.js'
 import { getServerPort } from './server.js'
 import { getWebAppDir } from './webapp.js'
@@ -86,18 +92,32 @@ async function checkValidDevice(device: string) {
   return res.includes('index.html')
 }
 
+let carThingFound = false
+
 export async function findCarThing() {
   log('Finding CarThing...', 'adb', LogLevel.DEBUG)
+  const logLevel = getLogLevel()
   const devices = await getDevices()
 
   for (const device of devices) {
     if (await checkValidDevice(device)) {
-      log(`Found CarThing: ${device}`, 'adb')
+      if (logLevel === LogLevel.DEBUG)
+        log(`Found CarThing: ${device}`, 'adb', LogLevel.DEBUG)
+      else if (!carThingFound) {
+        log(`Found CarThing: ${device}`, 'adb')
+        carThingFound = true
+      }
       return device
     }
   }
 
-  log('No valid CarThing found', 'adb', LogLevel.WARN)
+  if (logLevel === LogLevel.DEBUG)
+    log('No valid CarThing found', 'adb', LogLevel.DEBUG)
+  else if (carThingFound) {
+    log('CarThing no longer found', 'adb', LogLevel.WARN)
+    carThingFound = false
+  }
+
   return null
 }
 

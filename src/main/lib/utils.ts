@@ -43,6 +43,10 @@ export function setLogLevel(level: LogLevel) {
   logLevel = level
 }
 
+export function getLogLevel() {
+  return logLevel
+}
+
 export function log(text: string, scope?: string, level = LogLevel.INFO) {
   if (level < logLevel) return
 
