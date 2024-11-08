@@ -9,8 +9,7 @@ import fs from 'fs'
 
 import { getStorageValue } from './storage.js'
 
-export const isDev = async () =>
-  (await getStorageValue('devMode')) === true
+export const isDev = () => getStorageValue('devMode') === true
 
 export const random = (len: number) =>
   crypto.randomBytes(len).toString('hex')
@@ -54,9 +53,9 @@ export function safeParse(json: string) {
   }
 }
 
-export async function formatDate(d = new Date()) {
-  const timeFormat = (await getStorageValue('timeFormat')) || 'HH:mm'
-  const dateFormat = (await getStorageValue('dateFormat')) || 'ddd, D MMM'
+export function formatDate(d = new Date()) {
+  const timeFormat = getStorageValue('timeFormat') || 'HH:mm'
+  const dateFormat = getStorageValue('dateFormat') || 'ddd, D MMM'
 
   const time = moment(d).format(timeFormat)
   const date = moment(d).format(dateFormat)

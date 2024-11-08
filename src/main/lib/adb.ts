@@ -211,7 +211,7 @@ export async function installApp(device: string | null) {
 
   const appDir = await getWebAppDir()
 
-  const WS_PASSWORD = await getSocketPassword()
+  const WS_PASSWORD = getSocketPassword()
 
   await restore(device, false)
 

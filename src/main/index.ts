@@ -72,11 +72,11 @@ function createWindow(): void {
     mainWindow!.center()
   })
 
-  mainWindow.on('closed', async () => {
-    const firstClose = await getStorageValue('firstClose')
+  mainWindow.on('closed', () => {
+    const firstClose = getStorageValue('firstClose')
 
     if (firstClose !== false) {
-      await setStorageValue('firstClose', false)
+      setStorageValue('firstClose', false)
 
       new Notification({
         title: 'Still Running!',
@@ -101,15 +101,15 @@ function createWindow(): void {
 
 app.on('ready', async () => {
   log('Welcome!', 'GlanceThing')
-  await loadStorage()
+  loadStorage()
 
   if (
     process.env.NODE_ENV === 'development' &&
-    (await getStorageValue('devMode')) === null
+    getStorageValue('devMode') === null
   ) {
-    await setStorageValue('devMode', true)
+    setStorageValue('devMode', true)
   }
-  if (await isDev()) log('Running in development mode', 'GlanceThing')
+  if (isDev()) log('Running in development mode', 'GlanceThing')
   electronApp.setAppUserModelId('com.bludood.glancething')
 
   const adbPath = await getAdbExecutable().catch(err => ({ err }))
@@ -121,8 +121,7 @@ app.on('ready', async () => {
     else log(`Using downloaded ADB from path: ${adbPath}`, 'adb')
   }
 
-  if ((await getStorageValue('setupComplete')) === true)
-    await startServer()
+  if (getStorageValue('setupComplete') === true) await startServer()
 
   await setupIpcHandlers()
   await setupTray()
@@ -135,7 +134,7 @@ app.on('ready', async () => {
     return net.fetch(`file://${path}`)
   })
 
-  if ((await getStorageValue('launchMinimized')) !== true) createWindow()
+  if (getStorageValue('launchMinimized') !== true) createWindow()
 })
 
 app.on('browser-window-created', (_, window) => {
@@ -217,16 +216,13 @@ async function setupIpcHandlers() {
     return app.getVersion()
   })
 
-  ipcMain.handle(IPCHandler.GetStorageValue, async (_event, key) => {
-    return await getStorageValue(key)
+  ipcMain.handle(IPCHandler.GetStorageValue, (_event, key) => {
+    return getStorageValue(key)
   })
 
-  ipcMain.handle(
-    IPCHandler.SetStorageValue,
-    async (_event, key, value) => {
-      return await setStorageValue(key, value)
-    }
-  )
+  ipcMain.handle(IPCHandler.SetStorageValue, (_event, key, value) => {
+    return setStorageValue(key, value)
+  })
 
   async function carThingStateUpdate() {
     const found = await findCarThing().catch(err => {
@@ -244,9 +240,7 @@ async function setupIpcHandlers() {
         mainWindow?.webContents.send('carThingState', 'ready')
         await forwardSocketServer(found)
       } else {
-        const willAutoInstall = await getStorageValue(
-          'installAutomatically'
-        )
+        const willAutoInstall = getStorageValue('installAutomatically')
         if (willAutoInstall) {
           mainWindow?.webContents.send('carThingState', 'installing')
           await installApp(found)
@@ -280,33 +274,33 @@ async function setupIpcHandlers() {
   })
 
   ipcMain.handle(IPCHandler.GetShortcuts, async () => {
-    return await getShortcuts()
+    return getShortcuts()
   })
 
   ipcMain.handle(IPCHandler.AddShortcut, async (_event, shortcut) => {
-    await addShortcut(shortcut)
+    addShortcut(shortcut)
     await updateApps()
   })
 
   ipcMain.handle(IPCHandler.RemoveShortcut, async (_event, shortcut) => {
-    await removeShortcut(shortcut)
+    removeShortcut(shortcut)
     await updateApps()
   })
 
   ipcMain.handle(IPCHandler.UpdateShortcut, async (_event, shortcut) => {
-    await updateShortcut(shortcut)
+    updateShortcut(shortcut)
     await updateApps()
   })
 
   ipcMain.handle(IPCHandler.IsDevMode, async () => {
-    return await isDev()
+    return isDev()
   })
 
   ipcMain.handle(IPCHandler.SetSpotifyToken, async (_event, token) => {
     const accessToken = await getToken(token).catch(() => null)
 
     if (accessToken) {
-      await setSpotifyDc(token)
+      setSpotifyDc(token)
       return true
     } else {
       return false

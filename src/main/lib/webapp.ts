@@ -6,10 +6,7 @@ import fs from 'fs'
 import { execAsync, isDev, log } from './utils.js'
 
 export async function getWebAppDir() {
-  if (
-    (await isDev()) &&
-    fs.existsSync(path.join(process.cwd(), 'client/dist'))
-  ) {
+  if (isDev() && fs.existsSync(path.join(process.cwd(), 'client/dist'))) {
     log('Using local client webapp', 'Client Webapp')
     return path.join(process.cwd(), 'client/dist')
   }

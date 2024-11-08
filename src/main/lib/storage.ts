@@ -21,7 +21,7 @@ const storageValueHandlers: Record<string, (value: unknown) => void> = {
   }
 }
 
-async function getStoragePath() {
+function getStoragePath() {
   const userDataPath = app.getPath('userData')
   const storagePath = path.join(userDataPath, 'storage.json')
 
@@ -31,9 +31,9 @@ async function getStoragePath() {
   return storagePath
 }
 
-export async function loadStorage() {
+export function loadStorage() {
   log('Loading storage file', 'Storage')
-  const storagePath = await getStoragePath()
+  const storagePath = getStoragePath()
   const content = fs.readFileSync(storagePath, 'utf8')
   const parsed = safeParse(content)
 
@@ -45,12 +45,12 @@ export async function loadStorage() {
   }
 }
 
-async function writeStorage(storage: Record<string, unknown>) {
-  const storagePath = await getStoragePath()
+function writeStorage(storage: Record<string, unknown>) {
+  const storagePath = getStoragePath()
   fs.writeFileSync(storagePath, JSON.stringify(storage, null, 2), 'utf8')
 }
 
-export async function getStorageValue(key: string, secure = false) {
+export function getStorageValue(key: string, secure = false) {
   log(`Getting value for key: ${key}`, 'Storage')
   const value = storage[key]
 
@@ -70,7 +70,7 @@ export async function getStorageValue(key: string, secure = false) {
   }
 }
 
-export async function setStorageValue(
+export function setStorageValue(
   key: string,
   value: unknown,
   secure = false
@@ -89,7 +89,7 @@ export async function setStorageValue(
 
   storage[key] = value
 
-  await writeStorage(storage)
+  writeStorage(storage)
 
   const handler = storageValueHandlers[key]
 
@@ -99,19 +99,19 @@ export async function setStorageValue(
   }
 }
 
-export async function getSocketPassword() {
-  let socketPassword = await getStorageValue('socketPassword', true)
+export function getSocketPassword() {
+  let socketPassword = getStorageValue('socketPassword', true)
   if (!socketPassword) {
     socketPassword = random(64)
-    await setStorageValue('socketPassword', socketPassword, true)
+    setStorageValue('socketPassword', socketPassword, true)
   }
   return socketPassword
 }
 
-export async function getSpotifyDc() {
+export function getSpotifyDc() {
   return getStorageValue('sp_dc', true)
 }
 
-export async function setSpotifyDc(dc: string) {
+export function setSpotifyDc(dc: string) {
   return setStorageValue('sp_dc', dc, true)
 }

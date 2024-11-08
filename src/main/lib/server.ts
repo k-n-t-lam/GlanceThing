@@ -29,7 +29,7 @@ let port: number | null = null
 export async function getServerPort() {
   if (port) return port
 
-  port = (await isDev()) ? 1337 : await findOpenPort()
+  port = isDev() ? 1337 : await findOpenPort()
 
   return port
 }
@@ -65,9 +65,9 @@ export async function stopServer() {
 export async function startServer() {
   if (wss) return
 
-  const WS_PASSWORD = await getSocketPassword()
+  const WS_PASSWORD = getSocketPassword()
 
-  const SPOTIFY_DC = await getSpotifyDc()
+  const SPOTIFY_DC = getSpotifyDc()
   const spotify = new SpotifyAPI(SPOTIFY_DC)
 
   spotify!.on('PLAYER_STATE_CHANGED', data => {
@@ -110,8 +110,8 @@ export async function startServer() {
   return new Promise<void>(resolve => {
     wss = new WebSocketServer({ port })
 
-    wss.on('connection', async (ws: AuthenticatedWebSocket) => {
-      if ((await getStorageValue('disableSocketAuth')) === true)
+    wss.on('connection', (ws: AuthenticatedWebSocket) => {
+      if (getStorageValue('disableSocketAuth') === true)
         ws.authenticated = true
 
       ws.on('message', async msg => {
@@ -191,7 +191,7 @@ export async function startServer() {
             )
           }
         } else if (type === 'apps') {
-          const shortcuts = await getShortcuts()
+          const shortcuts = getShortcuts()
           if (action === 'open') {
             const app = shortcuts.find(app => app.id === data)
             if (app) {
@@ -226,7 +226,7 @@ export async function startServer() {
             )
           }
         } else if (type === 'restore') {
-          await setStorageValue('installAutomatically', false)
+          setStorageValue('installAutomatically', false)
           await restore(null)
         } else if (type === 'lock') {
           const { cmd, shell } = getLockPlatformCommand()
@@ -262,7 +262,7 @@ export async function updateApps() {
     ws.send(
       JSON.stringify({
         type: 'apps',
-        data: await getShortcuts()
+        data: getShortcuts()
       })
     )
   })

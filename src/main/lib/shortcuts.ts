@@ -67,44 +67,44 @@ export function removeShortcutImage(id: string) {
   fs.rmSync(imagePath)
 }
 
-export async function getShortcuts() {
-  const shortcuts = await getStorageValue('shortcuts')
+export function getShortcuts() {
+  const shortcuts = getStorageValue('shortcuts')
 
   if (!shortcuts) return []
 
   return shortcuts as Shortcut[]
 }
 
-export async function addShortcut(shortcut: Shortcut) {
-  const shortcuts = await getShortcuts()
+export function addShortcut(shortcut: Shortcut) {
+  const shortcuts = getShortcuts()
 
   shortcuts.push(shortcut)
 
-  await setStorageValue('shortcuts', shortcuts)
+  setStorageValue('shortcuts', shortcuts)
 
   saveShortcutImage(shortcut.id)
 }
 
-export async function removeShortcut(id: string) {
-  const shortcuts = await getShortcuts()
+export function removeShortcut(id: string) {
+  const shortcuts = getShortcuts()
   const index = shortcuts.findIndex(s => s.id === id)
 
   if (index === -1) return
 
   shortcuts.splice(index, 1)
 
-  await setStorageValue('shortcuts', shortcuts)
+  setStorageValue('shortcuts', shortcuts)
 
   removeShortcutImage(id)
 }
 
-export async function updateShortcut(shortcut: Shortcut) {
-  const shortcuts = await getShortcuts()
+export function updateShortcut(shortcut: Shortcut) {
+  const shortcuts = getShortcuts()
   const index = shortcuts.findIndex(s => s.id === shortcut.id)
 
   if (index === -1) return
 
   shortcuts[index] = shortcut
 
-  await setStorageValue('shortcuts', shortcuts)
+  setStorageValue('shortcuts', shortcuts)
 }
