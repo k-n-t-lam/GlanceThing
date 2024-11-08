@@ -6,6 +6,8 @@ import { log, random, safeParse } from './utils.js'
 import { setAutoBrightness } from './adb.js'
 import { updateTime } from './server.js'
 
+let storage = {}
+
 const storageValueHandlers: Record<string, (value: unknown) => void> = {
   launchOnStartup: async value => {
     app.setLoginItemSettings({
@@ -29,10 +31,18 @@ async function getStoragePath() {
   return storagePath
 }
 
-async function getStorage() {
+export async function loadStorage() {
+  log('Loading storage file', 'Storage')
   const storagePath = await getStoragePath()
-  const storage = fs.readFileSync(storagePath, 'utf8')
-  return safeParse(storage) || {}
+  const content = fs.readFileSync(storagePath, 'utf8')
+  const parsed = safeParse(content)
+
+  if (parsed) {
+    storage = parsed
+  } else {
+    log('Failed to parse storage file, using empty object.', 'Storage')
+    storage = {}
+  }
 }
 
 async function writeStorage(storage: Record<string, unknown>) {
@@ -42,7 +52,6 @@ async function writeStorage(storage: Record<string, unknown>) {
 
 export async function getStorageValue(key: string, secure = false) {
   log(`Getting value for key: ${key}`, 'Storage')
-  const storage = await getStorage()
   const value = storage[key]
 
   if (value === undefined) return null
@@ -78,7 +87,6 @@ export async function setStorageValue(
     }
   }
 
-  const storage = await getStorage()
   storage[key] = value
 
   await writeStorage(storage)

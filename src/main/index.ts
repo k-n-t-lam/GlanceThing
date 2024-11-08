@@ -14,6 +14,7 @@ import { join } from 'path'
 
 import {
   getStorageValue,
+  loadStorage,
   setSpotifyDc,
   setStorageValue
 } from './lib/storage.js'
@@ -99,14 +100,15 @@ function createWindow(): void {
 }
 
 app.on('ready', async () => {
+  log('Welcome!', 'GlanceThing')
+  await loadStorage()
+
   if (
     process.env.NODE_ENV === 'development' &&
     (await getStorageValue('devMode')) === null
   ) {
     await setStorageValue('devMode', true)
   }
-
-  log('Welcome!', 'GlanceThing')
   if (await isDev()) log('Running in development mode', 'GlanceThing')
   electronApp.setAppUserModelId('com.bludood.glancething')
 
