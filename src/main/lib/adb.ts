@@ -4,7 +4,7 @@ import axios from 'axios'
 import path from 'path'
 import fs from 'fs'
 
-import { execAsync, getPlatformADB, log } from './utils.js'
+import { execAsync, getPlatformADB, log, LogLevel } from './utils.js'
 import { getSocketPassword } from './storage.js'
 import { getServerPort } from './server.js'
 import { getWebAppDir } from './webapp.js'
@@ -36,7 +36,7 @@ export async function getAdbExecutable() {
   })
 
   if (download.status !== 200) {
-    log('Failed to download adb', 'adb')
+    log('Failed to download adb', 'adb', LogLevel.ERROR)
     throw new Error('adb_download_failed')
   }
 
@@ -87,7 +87,7 @@ async function checkValidDevice(device: string) {
 }
 
 export async function findCarThing() {
-  log('Finding CarThing...', 'adb')
+  log('Finding CarThing...', 'adb', LogLevel.DEBUG)
   const devices = await getDevices()
 
   for (const device of devices) {
@@ -97,7 +97,7 @@ export async function findCarThing() {
     }
   }
 
-  log('No valid CarThing found', 'adb')
+  log('No valid CarThing found', 'adb', LogLevel.WARN)
   return null
 }
 
@@ -107,7 +107,7 @@ async function restartChromium(device: string | null) {
 
   const adb = await getAdbExecutable()
 
-  log('Restarting Chromium...', 'adb')
+  log('Restarting Chromium...', 'adb', LogLevel.DEBUG)
   await execAsync(
     `${adb} -s ${device} shell "supervisorctl restart chromium"`
   )
@@ -196,7 +196,7 @@ export async function restore(device: string | null, restart = true) {
 
   const adb = await getAdbExecutable()
 
-  log('Restoring original app...', 'adb')
+  log('Restoring original app...', 'adb', LogLevel.DEBUG)
   await execAsync(
     `${adb} -s ${device} shell "mountpoint /usr/share/qt-superbird-app/webapp/ > /dev/null && umount /usr/share/qt-superbird-app/webapp"`
   )
@@ -217,7 +217,7 @@ export async function installApp(device: string | null) {
 
   const adb = await getAdbExecutable()
 
-  log('Installing app...', 'adb')
+  log('Installing app...', 'adb', LogLevel.DEBUG)
   await execAsync(`${adb} -s ${device} push ${appDir} /tmp/webapp`)
   await execAsync(
     `${adb} -s ${device} shell "echo ${WS_PASSWORD} > /tmp/webapp/ws-password"`
@@ -255,5 +255,5 @@ export async function forwardSocketServer(device: string | null) {
 
   await execAsync(`${adb} -s ${device} reverse tcp:1337 tcp:${port}`)
 
-  log('Forwarded socket server!', 'adb')
+  log('Forwarded socket server!', 'adb', LogLevel.DEBUG)
 }

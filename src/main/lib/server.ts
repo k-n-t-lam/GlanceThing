@@ -11,6 +11,7 @@ import {
   getParsedPlatformCommand,
   isDev,
   log,
+  LogLevel,
   safeParse
 } from '../lib/utils.js'
 import { getShortcutImage, getShortcuts } from './shortcuts.js'
@@ -118,7 +119,11 @@ export async function startServer() {
         const d = safeParse(msg.toString())
         if (!d) return
         const { type, action, data } = d
-        log(`Received ${type} ${action ?? ''}`, 'WebSocketServer')
+        log(
+          `Received ${type} ${action ?? ''}`,
+          'WebSocketServer',
+          LogLevel.DEBUG
+        )
 
         if (type === 'auth') {
           if (data === WS_PASSWORD) {
@@ -158,13 +163,16 @@ export async function startServer() {
           if (!spotify) return
           if (action === 'pause') {
             const res = await spotify.setPlaying(false)
-            if (res === false) log('Failed to pause', 'Spotify')
+            if (res === false)
+              log('Failed to pause', 'Spotify', LogLevel.ERROR)
           } else if (action === 'play') {
             const res = await spotify.setPlaying(true)
-            if (res === false) log('Failed to play', 'Spotify')
+            if (res === false)
+              log('Failed to play', 'Spotify', LogLevel.ERROR)
           } else if (action === 'volume') {
             const res = await spotify.setVolume(data.amount)
-            if (res === false) log('Failed to set volume', 'Spotify')
+            if (res === false)
+              log('Failed to set volume', 'Spotify', LogLevel.ERROR)
           } else if (action === 'image') {
             const res = await fetchImage(data.id)
             ws.send(
@@ -177,10 +185,15 @@ export async function startServer() {
           } else if (action === 'previous') {
             const res = await spotify.previous()
             if (res === false)
-              log('Failed to go to previous track', 'Spotify')
+              log(
+                'Failed to go to previous track',
+                'Spotify',
+                LogLevel.ERROR
+              )
           } else if (action === 'next') {
             const res = await spotify.next()
-            if (res === false) log('Failed to go to next track', 'Spotify')
+            if (res === false)
+              log('Failed to go to next track', 'Spotify', LogLevel.ERROR)
           } else {
             const res = await spotify.getCurrent()
             ws.send(

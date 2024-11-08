@@ -28,7 +28,24 @@ export async function execAsync(cmd: string): Promise<string> {
 
 let logPath: string | null = null
 
-export function log(text: string, name?: string) {
+export enum LogLevel {
+  DEBUG,
+  INFO,
+  WARN,
+  ERROR
+}
+
+const logLevelNames = ['DEBUG', 'INFO', 'WARN', 'ERROR']
+
+let logLevel = LogLevel.INFO
+
+export function setLogLevel(level: LogLevel) {
+  logLevel = level
+}
+
+export function log(text: string, scope?: string, level = LogLevel.INFO) {
+  if (level < logLevel) return
+
   if (!logPath)
     logPath = path.join(app.getPath('userData'), 'glancething.log')
 
@@ -39,7 +56,9 @@ export function log(text: string, name?: string) {
     second: 'numeric'
   })
 
-  const log = `[${time}]${name ? ` <${name}>:` : ''} ${text}`
+  const levelName = logLevelNames[level]
+
+  const log = `[${time}] ${levelName}${scope ? ` <${scope}>:` : ''} ${text}`
 
   console.log(log)
   fs.appendFileSync(logPath, log + '\n')

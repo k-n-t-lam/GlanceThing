@@ -3,7 +3,7 @@ import axios from 'axios'
 import path from 'path'
 import fs from 'fs'
 
-import { execAsync, isDev, log } from './utils.js'
+import { execAsync, isDev, log, LogLevel } from './utils.js'
 
 export async function getWebAppDir() {
   if (isDev() && fs.existsSync(path.join(process.cwd(), 'client/dist'))) {
@@ -31,7 +31,11 @@ export async function getWebAppDir() {
   })
 
   if (res.status !== 200) {
-    log('Failed to download client webapp', 'Client Webapp')
+    log(
+      'Failed to download client webapp',
+      'Client Webapp',
+      LogLevel.ERROR
+    )
     throw new Error('webapp_download_failed')
   }
 
@@ -44,7 +48,11 @@ export async function getWebAppDir() {
     writeStream.on('error', reject)
   })
 
-  log('Sucessfully downloaded, extracting...', 'Client Webapp')
+  log(
+    'Sucessfully downloaded, extracting...',
+    'Client Webapp',
+    LogLevel.DEBUG
+  )
 
   if (!fs.existsSync(extractPath)) fs.mkdirSync(extractPath)
 
@@ -53,11 +61,11 @@ export async function getWebAppDir() {
   ).catch(() => null)
 
   if (extract === null) {
-    log('Failed to extract client webapp', 'Client Webapp')
+    log('Failed to extract client webapp', 'Client Webapp', LogLevel.ERROR)
     throw new Error('webapp_extract_failed')
   }
 
-  log('Done downloading!', 'Client Webapp')
+  log('Downloaded!', 'Client Webapp')
 
   return extractPath
 }

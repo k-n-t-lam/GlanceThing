@@ -188,10 +188,10 @@ const InputWithSubmitSetting: React.FC<{
 const SelectSetting: React.FC<{
   label: string
   description?: string
-  defaultValue?: string
-  value?: string
-  options: { value: string; label: string }[]
-  onChange: (value: string) => void
+  defaultValue?: string | number
+  value?: string | number
+  options: { value: string | number; label: string }[]
+  onChange: (value: string | number) => void
 }> = ({ label, description, defaultValue, value, options, onChange }) => {
   return (
     <div className={styles.selectSetting}>
@@ -366,14 +366,6 @@ const ClientTab: React.FC = () => {
     loadSettings()
   }, [])
 
-  function handleTimeFormatChange(value: string) {
-    window.api.setStorageValue('timeFormat', value)
-  }
-
-  function handleDateFormatChange(value: string) {
-    window.api.setStorageValue('dateFormat', value)
-  }
-
   return (
     loaded && (
       <div className={styles.settingsTab}>
@@ -385,7 +377,9 @@ const ClientTab: React.FC = () => {
             { value: 'HH:mm', label: '24-hour' },
             { value: 'h:mm A', label: '12-hour' }
           ]}
-          onChange={handleTimeFormatChange}
+          onChange={value =>
+            window.api.setStorageValue('timeFormat', value as string)
+          }
         />
         <SelectSetting
           label="Date Format"
@@ -395,7 +389,9 @@ const ClientTab: React.FC = () => {
             { value: 'ddd, D MMM', label: 'Short' },
             { value: 'dddd, D MMMM', label: 'Long' }
           ]}
-          onChange={handleDateFormatChange}
+          onChange={value =>
+            window.api.setStorageValue('dateFormat', value as string)
+          }
         />
         <ToggleSetting
           label="Auto Brightness"
@@ -497,13 +493,16 @@ const AdvancedTab: React.FC = () => {
   const [loaded, setLoaded] = useState(false)
   const settings = useRef<{
     disableSocketAuth?: boolean
+    logLevel?: number
   }>({})
 
   useEffect(() => {
     async function loadSettings() {
       settings.current = {
         disableSocketAuth:
-          (await window.api.getStorageValue('disableSocketAuth')) === true
+          (await window.api.getStorageValue('disableSocketAuth')) === true,
+        logLevel: ((await window.api.getStorageValue('logLevel')) ||
+          1) as number
       }
       setLoaded(true)
     }
@@ -519,6 +518,18 @@ const AdvancedTab: React.FC = () => {
           description="Enables some options for development purposes."
           defaultValue={true}
           onChange={() => setDevMode(false)}
+        />
+        <SelectSetting
+          label="Log Level"
+          description="Useful for debugging purposes."
+          defaultValue={settings.current.logLevel}
+          options={[
+            { value: 0, label: 'Debug' },
+            { value: 1, label: 'Info' },
+            { value: 2, label: 'Warn' },
+            { value: 3, label: 'Error' }
+          ]}
+          onChange={value => window.api.setStorageValue('logLevel', value)}
         />
         <ToggleSetting
           label="Disable WebSocket Authentication"

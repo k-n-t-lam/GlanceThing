@@ -18,7 +18,7 @@ import {
   setSpotifyDc,
   setStorageValue
 } from './lib/storage.js'
-import { isDev, log } from './lib/utils.js'
+import { isDev, log, LogLevel, setLogLevel } from './lib/utils.js'
 import {
   startServer,
   stopServer,
@@ -102,6 +102,7 @@ function createWindow(): void {
 app.on('ready', async () => {
   log('Welcome!', 'GlanceThing')
   loadStorage()
+  setLogLevel(getStorageValue('logLevel') || LogLevel.INFO)
 
   if (
     process.env.NODE_ENV === 'development' &&
@@ -115,7 +116,11 @@ app.on('ready', async () => {
   const adbPath = await getAdbExecutable().catch(err => ({ err }))
 
   if (typeof adbPath === 'object' && adbPath.err) {
-    log(`Failed to get ADB executable: ${adbPath.err.message}`, 'adb')
+    log(
+      `Failed to get ADB executable: ${adbPath.err.message}`,
+      'adb',
+      LogLevel.ERROR
+    )
   } else {
     if (adbPath === 'adb') log('Using system adb', 'adb')
     else log(`Using downloaded ADB from path: ${adbPath}`, 'adb')
@@ -228,7 +233,8 @@ async function setupIpcHandlers() {
     const found = await findCarThing().catch(err => {
       log(
         `Got an error while finding CarThing: ${err.message}`,
-        'CarThingState'
+        'CarThingState',
+        LogLevel.ERROR
       )
       return null
     })

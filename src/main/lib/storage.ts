@@ -2,7 +2,7 @@ import { app, safeStorage } from 'electron'
 import path from 'path'
 import fs from 'fs'
 
-import { log, random, safeParse } from './utils.js'
+import { log, LogLevel, random, safeParse, setLogLevel } from './utils.js'
 import { setAutoBrightness } from './adb.js'
 import { updateTime } from './server.js'
 
@@ -18,7 +18,8 @@ const storageValueHandlers: Record<string, (value: unknown) => void> = {
   dateFormat: updateTime,
   autoBrightness: async value => {
     await setAutoBrightness(null, value as boolean)
-  }
+  },
+  logLevel: async value => setLogLevel(value as LogLevel)
 }
 
 function getStoragePath() {
@@ -32,7 +33,7 @@ function getStoragePath() {
 }
 
 export function loadStorage() {
-  log('Loading storage file', 'Storage')
+  log('Loading storage file', 'Storage', LogLevel.DEBUG)
   const storagePath = getStoragePath()
   const content = fs.readFileSync(storagePath, 'utf8')
   const parsed = safeParse(content)
@@ -40,9 +41,15 @@ export function loadStorage() {
   if (parsed) {
     storage = parsed
   } else {
-    log('Failed to parse storage file, using empty object.', 'Storage')
+    log(
+      'Failed to parse storage file, using empty object.',
+      'Storage',
+      LogLevel.ERROR
+    )
     storage = {}
   }
+
+  log('Loaded storage file', 'Storage')
 }
 
 function writeStorage(storage: Record<string, unknown>) {
@@ -51,7 +58,7 @@ function writeStorage(storage: Record<string, unknown>) {
 }
 
 export function getStorageValue(key: string, secure = false) {
-  log(`Getting value for key: ${key}`, 'Storage')
+  log(`Getting value for key: ${key}`, 'Storage', LogLevel.DEBUG)
   const value = storage[key]
 
   if (value === undefined) return null
@@ -59,8 +66,9 @@ export function getStorageValue(key: string, secure = false) {
   if (secure) {
     if (!safeStorage.isEncryptionAvailable()) {
       log(
-        'WARNING: Encryption is not available, returning value as is.',
-        'Storage'
+        'Encryption is not available, returning value as is.',
+        'Storage',
+        LogLevel.WARN
       )
       return value
     }
@@ -80,7 +88,8 @@ export function setStorageValue(
     if (!safeStorage.isEncryptionAvailable()) {
       log(
         'WARNING: Encryption is not available, storing value as is.',
-        'Storage'
+        'Storage',
+        LogLevel.WARN
       )
     } else {
       value = safeStorage.encryptString(String(value)).toString('hex')
@@ -94,7 +103,7 @@ export function setStorageValue(
   const handler = storageValueHandlers[key]
 
   if (handler) {
-    log(`Running handler for key: ${key}`, 'Storage')
+    log(`Running handler for key: ${key}`, 'Storage', LogLevel.DEBUG)
     handler(value)
   }
 }
