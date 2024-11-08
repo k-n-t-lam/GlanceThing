@@ -529,7 +529,12 @@ const AdvancedTab: React.FC = () => {
             { value: 2, label: 'Warn' },
             { value: 3, label: 'Error' }
           ]}
-          onChange={value => window.api.setStorageValue('logLevel', value)}
+          onChange={value =>
+            window.api.setStorageValue(
+              'logLevel',
+              parseInt(value as string)
+            )
+          }
         />
         <ToggleSetting
           label="Disable WebSocket Authentication"
