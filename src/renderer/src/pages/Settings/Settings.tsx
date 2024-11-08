@@ -355,7 +355,8 @@ const ClientTab: React.FC = () => {
         dateFormat: ((await window.api.getStorageValue('dateFormat')) ||
           'ddd, D MMM') as string,
         autoBrightness:
-          (await window.api.getStorageValue('autoBrightness')) === true,
+          ((await window.api.getStorageValue('autoBrightness')) ||
+            true) === true,
         brightness: await window.api.getBrightness()
       }
       setAutoBrightness(settings.current.autoBrightness ?? false)
