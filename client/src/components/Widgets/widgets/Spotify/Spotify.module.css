@@ -7,6 +7,8 @@
   align-items: center;
   justify-content: center;
   text-align: center;
+  position: relative;
+  overflow: hidden;
 }
 
 .spotify .cover {
@@ -74,7 +76,6 @@
 
 .controls {
   display: flex;
-  margin-bottom: -10px;
 }
 
 .controls button {
@@ -88,10 +89,48 @@
   font-size: 2em;
 }
 
+.progress {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.progress .slider {
+  width: 200px;
+  height: 6px;
+  background: #ddd;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress .slider .fill {
+  height: 100%;
+  background: #0064ff;
+  transition: width 200ms ease;
+}
+
+.progress p {
+  padding: 0 16px;
+  font-size: 0.8em;
+}
+
 .volume {
   display: flex;
   align-items: center;
   justify-content: center;
+  position: absolute;
+  bottom: 0;
+  background: #111;
+  padding: 10px;
+  opacity: 0;
+  transform: translateY(100%);
+  transition: 500ms ease;
+}
+
+.volume[data-shown='true'] {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .volume .slider {

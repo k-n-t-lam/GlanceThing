@@ -8,7 +8,7 @@ import {
 } from 'react'
 
 import { FilteredSpotifyCurrentPlayingResponse } from '@/types/spotify'
-import { getClosestImage } from '@/lib/utils.ts'
+import { formatTime, getClosestImage } from '@/lib/utils.ts'
 
 import BaseWidget from '../BaseWidget/BaseWidget.tsx'
 
@@ -28,6 +28,7 @@ const Spotify: React.FC = () => {
   const [volume, setVolume] = useState(0)
   const volumeRef = useRef(volume)
   const lastVolumeChange = useRef(0)
+  const [volumeAdjusted, setVolumeAdjusted] = useState(false)
 
   const [image, setImage] = useState('')
   const imageRef = useRef(image)
@@ -177,6 +178,38 @@ const Spotify: React.FC = () => {
   }, [coverAction])
 
   useEffect(() => {
+    if (!playerData?.playing) return
+    const interval = setInterval(() => {
+      setPlayerData(p => ({
+        ...p!,
+        duration: {
+          ...p!.duration,
+          current: p!.duration.current + 200
+        }
+      }))
+    }, 200)
+
+    return () => {
+      clearInterval(interval)
+    }
+  }, [playerData])
+
+  useEffect(() => {
+    playerDataRef.current = playerData
+  }, [playerData])
+
+  useEffect(() => {
+    setVolumeAdjusted(true)
+    const timer = setTimeout(() => {
+      setVolumeAdjusted(false)
+    }, 2000)
+
+    return () => {
+      clearTimeout(timer)
+    }
+  }, [volume])
+
+  useEffect(() => {
     if (ready === true && socket) {
       const listener = (e: MessageEvent) => {
         const { type, action, data } = JSON.parse(e.data)
@@ -189,11 +222,9 @@ const Spotify: React.FC = () => {
           if (!data) return
 
           if (data.session == false) {
-            playerDataRef.current = null
             return setPlayerData(null)
           }
           setPlayerData(data)
-          playerDataRef.current = data
 
           if (lastVolumeChange.current < Date.now() - 1000) {
             setVolume(data.device.volume_percent)
@@ -305,8 +336,24 @@ const Spotify: React.FC = () => {
               <span className="material-icons">skip_next</span>
             </button>
           </div>
+          <div className={styles.progress}>
+            <p>{formatTime(playerData.duration.current)}</p>
+            <div className={styles.slider}>
+              <div
+                className={styles.fill}
+                style={{
+                  width: `${
+                    (playerData.duration.current /
+                      playerData.duration.total) *
+                    100
+                  }%`
+                }}
+              ></div>
+            </div>
+            <p>{formatTime(playerData.duration.total)}</p>
+          </div>
           {playerData.device.supports_volume && (
-            <div className={styles.volume}>
+            <div className={styles.volume} data-shown={volumeAdjusted}>
               <button onMouseDown={volumeDown}>
                 <span className="material-icons"> volume_down </span>
               </button>

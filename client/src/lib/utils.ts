@@ -16,3 +16,11 @@ export async function getSocketPassword() {
   const res = await axios.get('./ws-password')
   return res.data.replace('\n', '')
 }
+
+export function formatTime(ms: number) {
+  const seconds = Math.floor(ms / 1000)
+  const minutes = Math.floor(seconds / 60)
+  const remainingSeconds = seconds % 60
+
+  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
+}
