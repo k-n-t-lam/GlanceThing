@@ -15,7 +15,7 @@ Your CarThing as a glanceable action pad!
 
 ## Getting started
 
-The application only works on Windows for now. Linux support is planned!
+The application only works on Windows for now. Linux and Mac support is planned!
 
 1. Download GlanceThing from [Releases](../../releases/).
 2. Open the downloaded file to install
@@ -31,7 +31,7 @@ Here you will see your current Spotify player status, as well as your app shortc
 
 The buttons 1, 2 and 3 (from the left) will focus the Spotify, shortcuts and actions widgets respectively.
 
-Pressing the M button (right-most button) will bring up a menu to restore your device to the original Spotify interface.
+Pressing the M button (right-most button) will bring up the system menu where you can choose to put your device to sleep, or restore your device to the original Spotify software.
 
 The button below the dial will unfocus any highligted widget, to avoid accidental actions or to have a cleaner look.
 
