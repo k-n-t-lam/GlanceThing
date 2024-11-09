@@ -142,7 +142,11 @@ export async function setAutoBrightness(
   if (!device) throw new Error('No valid CarThing found')
 
   const adb = await getAdbExecutable()
-
+  log(
+    `Turning ${enabled ? 'on' : 'off'} auto brightness...`,
+    'adb',
+    LogLevel.DEBUG
+  )
   await execAsync(
     `${adb} -s ${device} shell "supervisorctl ${enabled ? 'start' : 'stop'} backlight"`
   )
@@ -187,17 +191,16 @@ export async function setBrightness(
 
 export async function setBrightnessSmooth(
   device: string | null,
-  brightness: number
+  brightness: number,
+  steps = 10
 ) {
   if (!device) device = await findCarThing()
   if (!device) throw new Error('No valid CarThing found')
 
   const adb = await getAdbExecutable()
-
+  log('Setting brightness smoothly...', 'adb', LogLevel.DEBUG)
   const currentValue = await getBrightness(device, false)
   const targetValue = Math.max(formatBrightness(brightness), 1)
-
-  const steps = 10
 
   for (let i = 1; i <= steps; i++) {
     const value = Math.round(

@@ -6,10 +6,8 @@
   height: 100%;
 
   display: flex;
-  flex-direction: column;
   justify-content: center;
   align-items: center;
-  text-align: center;
 
   background: rgba(0, 0, 0, 0.5);
   opacity: 0;
@@ -22,41 +20,42 @@
   pointer-events: all;
 }
 
-.menu h2 {
-  max-width: 600px;
-}
-
 .buttons {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  margin-top: 20px;
+  background: #111;
+  padding: 20px;
+  border-radius: 16px;
 }
 
 .buttons button {
   all: unset;
-
   display: flex;
-  background: #111;
-  border: 2px solid transparent;
-  outline: none;
-  transition: 200ms ease;
-  padding: 10px 20px;
-  border-radius: 20px;
-}
-
-.buttons button + button {
-  margin-left: 20px;
-}
-
-.buttons button:focus {
-  border-color: rgba(0, 100, 255, 0.5);
+  flex-direction: column;
+  align-items: center;
+  margin-right: 30px;
 }
 
 .buttons button:disabled {
   opacity: 0.5;
 }
 
-.buttons button[data-action='return'] {
-  background: rgb(255, 50, 50);
+.buttons button:last-child {
+  margin-right: 0;
+}
+
+.buttons button span {
+  font-size: 50px;
+  background: #222;
+  padding: 26px;
+  border-radius: 50%;
+  margin-bottom: 8px;
+  border: 2px solid transparent;
+  transition: border-color 200ms ease;
+}
+.buttons button:disabled span {
+  border: none;
+}
+
+.buttons button[data-selected='true'] span {
+  border-color: #0064ff;
 }

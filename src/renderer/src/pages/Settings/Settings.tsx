@@ -343,6 +343,7 @@ const ClientTab: React.FC = () => {
     dateFormat?: string
     autoBrightness?: boolean
     brightness?: number
+    sleepMethod?: string
   }>({})
 
   const [autoBrightness, setAutoBrightness] = useState(false)
@@ -357,7 +358,9 @@ const ClientTab: React.FC = () => {
         autoBrightness:
           ((await window.api.getStorageValue('autoBrightness')) ||
             true) === true,
-        brightness: await window.api.getBrightness()
+        brightness: await window.api.getBrightness(),
+        sleepMethod: ((await window.api.getStorageValue('sleepMethod')) ||
+          'sleep') as string
       }
       setAutoBrightness(settings.current.autoBrightness ?? false)
       setLoaded(true)
@@ -411,6 +414,21 @@ const ClientTab: React.FC = () => {
           max={1}
           step={0.05}
           onRelease={value => window.api.setBrightness(value)}
+        />
+        <SelectSetting
+          label="Sleep Method"
+          description="Method used for putting the CarThing to sleep"
+          defaultValue={settings.current.sleepMethod}
+          options={[
+            { value: 'sleep', label: 'Black Screen' },
+            {
+              value: 'screensaver',
+              label: 'Screensaver'
+            }
+          ]}
+          onChange={value =>
+            window.api.setStorageValue('sleepMethod', value as string)
+          }
         />
       </div>
     )

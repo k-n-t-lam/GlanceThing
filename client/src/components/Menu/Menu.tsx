@@ -1,8 +1,9 @@
 import { useContext, useEffect, useRef, useState, WheelEvent } from 'react'
 
-import RestoreScreen from '@/components/RestoreScreen/RestoreScreen.tsx'
 import { AppBlurContext } from '@/contexts/AppBlurContext.tsx'
 import { SocketContext } from '@/contexts/SocketContext.tsx'
+
+import RestoreScreen from '../RestoreScreen/RestoreScreen.tsx'
 
 import styles from './Menu.module.css'
 
@@ -13,16 +14,49 @@ const Menu: React.FC = () => {
   const [shown, setShown] = useState(false)
   const shownRef = useRef(shown)
 
+  const [selected, setSelected] = useState(0)
   const [restoring, setRestoring] = useState(false)
 
-  const buttonsRef = useRef<HTMLDivElement>(null)
+  const elements = [
+    {
+      name: 'Sleep',
+      icon: 'bedtime',
+      color: '#7b00ff',
+      onClick: () => {
+        socket?.send(
+          JSON.stringify({
+            type: 'sleep'
+          })
+        )
+        setShown(false)
+      }
+    },
+    {
+      name: 'Restore',
+      icon: 'settings_backup_restore',
+      color: '#ff3838',
+      onClick: () => {
+        setRestoring(true)
+        setShown(false)
+        socket?.send(
+          JSON.stringify({
+            type: 'restore'
+          })
+        )
+      }
+    }
+  ]
 
   useEffect(() => {
     function listener(e: KeyboardEvent) {
       if (e.key === 'm') {
         setShown(s => !s)
-        const first = buttonsRef.current?.firstElementChild as HTMLElement
-        first.focus()
+        ;(document.activeElement as HTMLElement)?.blur()
+        setTimeout(() => {
+          if (!shownRef.current) {
+            setSelected(0)
+          }
+        }, 200)
       } else if (e.key === 'ArrowLeft' && shownRef.current) {
         e.preventDefault()
         onWheel({ deltaX: -1 } as WheelEvent<HTMLDivElement>)
@@ -31,6 +65,8 @@ const Menu: React.FC = () => {
         onWheel({ deltaX: 1 } as WheelEvent<HTMLDivElement>)
       } else if (e.key === 'Escape' && shownRef.current) {
         setShown(false)
+      } else if (e.key === 'Enter' && shownRef.current) {
+        elements[selected].onClick()
       }
     }
 
@@ -47,25 +83,10 @@ const Menu: React.FC = () => {
   }, [shown, setBlurred])
 
   function onWheel(e: WheelEvent<HTMLDivElement>) {
-    if (!buttonsRef.current) return
-
-    const focused = document.activeElement as HTMLElement
     if (e.deltaX < 0) {
-      const prev = focused.previousElementSibling as HTMLElement
-      if (prev) {
-        prev.focus()
-      } else {
-        const last = buttonsRef.current?.lastElementChild as HTMLElement
-        last.focus()
-      }
+      setSelected(s => (s - 1 + elements.length) % elements.length)
     } else if (e.deltaX > 0) {
-      const next = focused.nextElementSibling as HTMLElement
-      if (next) {
-        next.focus()
-      } else {
-        const first = buttonsRef.current?.firstElementChild as HTMLElement
-        first.focus()
-      }
+      setSelected(s => (s + 1) % elements.length)
     }
   }
 
@@ -88,29 +109,31 @@ const Menu: React.FC = () => {
     }
   })
 
-  function restore() {
-    socket?.send(
-      JSON.stringify({
-        type: 'restore'
-      })
-    )
-    setRestoring(true)
-  }
-
   return (
     <>
-      <div className={styles.menu} data-shown={shown && !restoring}>
-        <h2>Would you like to return to the stock CarThing software?</h2>
-        <div className={styles.buttons} ref={buttonsRef}>
-          <button
-            onKeyDown={e => e.key === 'Enter' && setShown(false)}
-            onClick={() => setShown(false)}
-          >
-            Cancel
-          </button>
-          <button onClick={restore} data-action="return" disabled={!ready}>
-            Return to CarThing
-          </button>
+      <div className={styles.menu} data-shown={shown}>
+        <div className={styles.buttons}>
+          {elements.map((element, i) => (
+            <button
+              key={element.name}
+              data-selected={selected === i}
+              disabled={!ready}
+              onMouseDown={() => {
+                setSelected(i)
+                element.onClick()
+              }}
+            >
+              <span
+                className="material-icons"
+                style={{
+                  color: element.color
+                }}
+              >
+                {element.icon}
+              </span>
+              <p className={styles.label}>{element.name}</p>
+            </button>
+          ))}
         </div>
       </div>
       {restoring && <RestoreScreen />}

@@ -21,7 +21,7 @@ import {
   getStorageValue,
   setStorageValue
 } from './storage.js'
-import { restore } from './adb.js'
+import { restore, setAutoBrightness, setBrightnessSmooth } from './adb.js'
 
 let wss: WebSocketServer | null = null
 
@@ -247,6 +247,23 @@ export async function startServer() {
           exec(cmd, {
             shell
           })
+        } else if (type === 'sleep') {
+          const sleepMethod = getStorageValue('sleepMethod') ?? 'sleep'
+          ws.send(
+            JSON.stringify({
+              type: 'sleep',
+              data: sleepMethod
+            })
+          )
+
+          await setAutoBrightness(null, false)
+          if (sleepMethod === 'sleep') {
+            await setBrightnessSmooth(null, 0, 10)
+          } else if (sleepMethod === 'screensaver') {
+            await setBrightnessSmooth(null, 0.1, 10)
+          }
+        } else if (type === 'wake') {
+          await setAutoBrightness(null, true)
         }
       })
     })
