@@ -7,10 +7,12 @@ import {
   Menu,
   Notification,
   protocol,
-  net
+  net,
+  nativeImage
 } from 'electron'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { join } from 'path'
+import os from 'os'
 
 import {
   getStorageValue,
@@ -70,6 +72,8 @@ function createWindow(): void {
   mainWindow.on('ready-to-show', async () => {
     mainWindow!.show()
     mainWindow!.center()
+    mainWindow?.setWindowButtonVisibility?.(false)
+    app.dock?.show()
   })
 
   mainWindow.on('closed', () => {
@@ -83,8 +87,8 @@ function createWindow(): void {
         body: 'GlanceThing has been minimized to the system tray, and is still running in the background!'
       }).show()
     }
-
     mainWindow = null
+    app.dock?.hide()
   })
 
   mainWindow.webContents.setWindowOpenHandler(details => {
@@ -140,6 +144,7 @@ app.on('ready', async () => {
   })
 
   if (getStorageValue('launchMinimized') !== true) createWindow()
+  else app.dock?.hide()
 })
 
 app.on('browser-window-created', (_, window) => {
@@ -323,7 +328,13 @@ async function setupIpcHandlers() {
 }
 
 async function setupTray() {
-  const tray = new Tray(trayIcon)
+  const icon =
+    os.platform() === 'darwin'
+      ? nativeImage
+          .createFromPath(trayIcon)
+          .resize({ height: 24, width: 24 })
+      : trayIcon
+  const tray = new Tray(icon)
 
   const contextMenu = Menu.buildFromTemplate([
     {
@@ -356,6 +367,7 @@ async function setupTray() {
   tray.setToolTip(`GlanceThing v${app.getVersion()}`)
 
   tray.on('click', () => {
+    if (os.platform() === 'darwin') return
     if (mainWindow) {
       mainWindow.show()
     } else {
