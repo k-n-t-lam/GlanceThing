@@ -46,6 +46,8 @@ Using the dial will:
   - Click: Execute highlighted action.
   - Scroll: Scroll between items, wraps around.
 
+You can also use the album cover as a playback controller. Press once to play/pause, twice to skip forward and three times to skip backwards.
+
 ### Desktop companion
 
 <img src=".github/assets/home.png" width="400" />
