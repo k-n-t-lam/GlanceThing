@@ -15,7 +15,7 @@ Your CarThing as a glanceable action pad!
 
 ## Getting started
 
-The application only works on Windows for now. Linux and Mac support is planned!
+The application only works on Windows and Mac for now. Linux support is planned!
 
 1. Download GlanceThing from [Releases](../../releases/).
 2. Open the downloaded file to install
