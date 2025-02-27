@@ -2,7 +2,6 @@ import { exec } from 'child_process'
 import { app } from 'electron'
 import { platform } from 'os'
 import crypto from 'crypto'
-import moment from 'moment'
 import path from 'path'
 import net from 'net'
 import fs from 'fs'
@@ -73,19 +72,6 @@ export function safeParse(json: string) {
     return JSON.parse(json)
   } catch {
     return null
-  }
-}
-
-export function formatDate(d = new Date()) {
-  const timeFormat = getStorageValue('timeFormat') || 'HH:mm'
-  const dateFormat = getStorageValue('dateFormat') || 'ddd, D MMM'
-
-  const time = moment(d).format(timeFormat)
-  const date = moment(d).format(dateFormat)
-
-  return {
-    time,
-    date
   }
 }
 

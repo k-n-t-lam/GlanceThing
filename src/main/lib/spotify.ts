@@ -199,11 +199,9 @@ class SpotifyAPI extends EventEmitter {
 
       return res
     })
-
-    this.start()
   }
 
-  start = async () => {
+  async start() {
     this.token = await getToken(this.sp_dc)
 
     this.ws = new WebSocket(
@@ -302,4 +300,10 @@ class SpotifyAPI extends EventEmitter {
     return res.status === 204
   }
 }
-export default SpotifyAPI
+
+export let spotify: SpotifyAPI | null = null
+
+export function setupSpotify(sp_dc: string) {
+  spotify = new SpotifyAPI(sp_dc)
+  return spotify
+}

@@ -21,12 +21,7 @@ import {
   setStorageValue
 } from './lib/storage.js'
 import { isDev, log, LogLevel, setLogLevel } from './lib/utils.js'
-import {
-  startServer,
-  stopServer,
-  isServerStarted,
-  updateApps
-} from './lib/server.js'
+import { startServer, stopServer, isServerStarted } from './lib/server.js'
 import {
   findCarThing,
   installApp,
@@ -43,7 +38,8 @@ import {
   updateShortcut,
   uploadShortcutImage,
   getShortcutImagePath,
-  removeShortcutImage
+  removeShortcutImage,
+  updateApps
 } from './lib/shortcuts.js'
 
 import icon from '../../resources/icon.png?asset'

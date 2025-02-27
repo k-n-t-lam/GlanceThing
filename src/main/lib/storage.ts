@@ -4,7 +4,7 @@ import fs from 'fs'
 
 import { log, LogLevel, random, safeParse, setLogLevel } from './utils.js'
 import { setAutoBrightness } from './adb.js'
-import { updateTime } from './server.js'
+import { updateTime } from './time.js'
 
 let storage = {}
 

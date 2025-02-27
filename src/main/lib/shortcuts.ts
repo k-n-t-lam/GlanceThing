@@ -3,6 +3,8 @@ import path from 'path'
 import fs from 'fs'
 
 import { getStorageValue, setStorageValue } from './storage.js'
+import { wss } from './server.js'
+import { AuthenticatedWebSocket } from '../types/WebSocketServer.js'
 
 interface Shortcut {
   id: string
@@ -107,4 +109,19 @@ export function updateShortcut(shortcut: Shortcut) {
   shortcuts[index] = shortcut
 
   setStorageValue('shortcuts', shortcuts)
+}
+
+export async function updateApps() {
+  if (!wss) return
+
+  wss.clients.forEach(async (ws: AuthenticatedWebSocket) => {
+    if (!ws.authenticated) return
+
+    ws.send(
+      JSON.stringify({
+        type: 'apps',
+        data: getShortcuts()
+      })
+    )
+  })
 }
