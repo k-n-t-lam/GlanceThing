@@ -9,6 +9,7 @@ import App from '@/App.tsx'
 import './index.css'
 import '@fontsource-variable/open-sans'
 import '@fontsource/material-icons'
+import { MediaContextProvider } from './contexts/MediaContext.tsx'
 
 const root = createRoot(document.getElementById('root')!)
 
@@ -16,7 +17,9 @@ root.render(
   <SocketContextProvider>
     <AppBlurContextProvider>
       <SleepContextProvider>
-        <App />
+        <MediaContextProvider>
+          <App />
+        </MediaContextProvider>
       </SleepContextProvider>
     </AppBlurContextProvider>
   </SocketContextProvider>

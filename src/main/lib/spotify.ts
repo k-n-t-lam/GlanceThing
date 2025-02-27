@@ -98,6 +98,8 @@ interface FilteredSpotifyCurrentPlayingResponse {
   playing: boolean
   name: string
   trackURL: string
+  repeat_state: string
+  shuffle_state: boolean
   artists: {
     name: string
     url: string
@@ -128,7 +130,14 @@ interface NoSessionResponse {
 export function filterData(
   data: SpotifyCurrentPlayingResponse
 ): FilteredSpotifyCurrentPlayingResponse | NoSessionResponse {
-  const { is_playing, item, progress_ms, device } = data
+  const {
+    is_playing,
+    item,
+    progress_ms,
+    device,
+    repeat_state,
+    shuffle_state
+  } = data
 
   if (!item) {
     return {
@@ -141,6 +150,8 @@ export function filterData(
     playing: is_playing,
     name: item.name,
     trackURL: item.external_urls.spotify,
+    repeat_state,
+    shuffle_state,
     artists: item.artists.map(a => ({
       name: a.name,
       url: a.external_urls.spotify
@@ -296,6 +307,26 @@ class SpotifyAPI extends EventEmitter {
 
   async previous() {
     const res = await this.instance.post('/me/player/previous')
+
+    return res.status === 204
+  }
+
+  async shuffle(state: boolean) {
+    const res = await this.instance.put('/me/player/shuffle', null, {
+      params: {
+        state
+      }
+    })
+
+    return res.status === 204
+  }
+
+  async repeat(state: 'track' | 'context' | 'off') {
+    const res = await this.instance.put('/me/player/repeat', null, {
+      params: {
+        state
+      }
+    })
 
     return res.status === 204
   }

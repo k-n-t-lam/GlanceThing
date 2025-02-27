@@ -63,6 +63,26 @@ export const actions: HandlerAction[] = [
       if (res === false)
         log('Failed to go to next track', 'Spotify', LogLevel.ERROR)
     }
+  },
+  {
+    action: 'shuffle',
+    handle: async (_, data) => {
+      const res = await spotify!.shuffle(
+        (data as { state: boolean }).state
+      )
+      if (res === false)
+        log('Failed to toggle shuffle', 'Spotify', LogLevel.ERROR)
+    }
+  },
+  {
+    action: 'repeat',
+    handle: async (_, data) => {
+      const res = await spotify!.repeat(
+        (data as { state: 'track' | 'context' | 'off' }).state
+      )
+      if (res === false)
+        log('Failed to toggle repeat', 'Spotify', LogLevel.ERROR)
+    }
   }
 ]
 

@@ -31,6 +31,7 @@ const Widgets: React.FC = () => {
       document.removeEventListener('keydown', listener)
     }
   })
+
   return (
     <div className={styles.widgets} ref={widgetsRef}>
       <Spotify />

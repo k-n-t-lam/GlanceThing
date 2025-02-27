@@ -3,6 +3,8 @@ export interface FilteredSpotifyCurrentPlayingResponse {
   playing: boolean
   name: string
   trackURL: string
+  repeat_state: string
+  shuffle_state: boolean
   artists: {
     name: string
     url: string
