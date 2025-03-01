@@ -123,7 +123,7 @@ const FullescreenPlayer: React.FC<FullescreenPlayerProps> = ({
         const { type, action, data } = JSON.parse(e.data)
         if (type !== 'spotify') return
 
-        if (!data || action) return
+        if (!data || action || !data.session) return
 
         if (lastVolumeChange.current < Date.now() - 1000) {
           setVolume(data.device.volume_percent)
@@ -158,81 +158,96 @@ const FullescreenPlayer: React.FC<FullescreenPlayerProps> = ({
       >
         <span className="material-icons">keyboard_arrow_down</span>
       </button>
-      <img src={image || ''} alt="" className={styles.background} />
-      <div className={styles.track}>
-        <img src={image || ''} alt="" />
-        <div className={styles.info}>
-          <div className={styles.title}>{playerData?.name}</div>
-          <div className={styles.artist}>
-            {playerData?.artists.map(a => a.name).join(', ')}
-          </div>
-        </div>
-      </div>
-      <div className={styles.progress}>
-        <div
-          className={styles.bar}
-          style={{
-            width: `${((playerData?.duration.current || 0) / (playerData?.duration.total || 1)) * 100}%`
-          }}
-        ></div>
-      </div>
-      <div className={styles.controls} data-hide-buttons={volumeAdjusted}>
-        {playerData?.device.supports_volume && (
-          <div className={styles.volume} data-shown={volumeAdjusted}>
-            <button onMouseDown={volumeDown}>
-              <span className="material-icons"> volume_down </span>
-            </button>
-            <div className={styles.slider}>
-              <div
-                className={styles.fill}
-                style={{ width: `${volume}%` }}
-              ></div>
+      {playerData ? (
+        <>
+          <img src={image || ''} alt="" className={styles.background} />
+          <div className={styles.track}>
+            <img src={image || ''} alt="" />
+            <div className={styles.info}>
+              <div className={styles.title}>{playerData?.name}</div>
+              <div className={styles.artist}>
+                {playerData?.artists.map(a => a.name).join(', ')}
+              </div>
             </div>
-            <button onMouseDown={volumeUp}>
-              <span className="material-icons"> volume_up </span>
+          </div>
+          <div className={styles.progress}>
+            <div
+              className={styles.bar}
+              style={{
+                width: `${((playerData?.duration.current || 0) / (playerData?.duration.total || 1)) * 100}%`
+              }}
+            ></div>
+          </div>
+          <div
+            className={styles.controls}
+            data-hide-buttons={volumeAdjusted}
+          >
+            {playerData?.device.supports_volume && (
+              <div className={styles.volume} data-shown={volumeAdjusted}>
+                <button onMouseDown={volumeDown}>
+                  <span className="material-icons"> volume_down </span>
+                </button>
+                <div className={styles.slider}>
+                  <div
+                    className={styles.fill}
+                    style={{ width: `${volume}%` }}
+                  ></div>
+                </div>
+                <button onMouseDown={volumeUp}>
+                  <span className="material-icons"> volume_up </span>
+                </button>
+              </div>
+            )}
+            <button
+              data-shuffle-state={playerData?.shuffle_state}
+              onClick={() =>
+                actions.shuffle(playerData?.shuffle_state ? false : true)
+              }
+            >
+              <span className="material-icons">shuffle</span>
+            </button>
+            <button onClick={() => actions.skipBackward()}>
+              <span className="material-icons">skip_previous</span>
+            </button>
+            <button onClick={() => actions.playPause()}>
+              <span className="material-icons">
+                {playerData?.playing ? 'pause' : 'play_arrow'}
+              </span>
+            </button>
+            <button onClick={() => actions.skipForward()}>
+              <span className="material-icons">skip_next</span>
+            </button>
+            <button
+              data-repeat-state={playerData?.repeat_state !== 'off'}
+              onClick={() =>
+                actions.repeat(
+                  playerData?.repeat_state === 'off'
+                    ? 'context'
+                    : playerData?.repeat_state === 'context'
+                      ? 'track'
+                      : 'off'
+                )
+              }
+            >
+              <span className="material-icons">
+                {playerData?.repeat_state === 'off'
+                  ? 'repeat'
+                  : playerData?.repeat_state === 'context'
+                    ? 'repeat'
+                    : 'repeat_one'}
+              </span>
             </button>
           </div>
-        )}
-        <button
-          data-shuffle-state={playerData?.shuffle_state}
-          onClick={() =>
-            actions.shuffle(playerData?.shuffle_state ? false : true)
-          }
-        >
-          <span className="material-icons">shuffle</span>
-        </button>
-        <button onClick={() => actions.skipBackward()}>
-          <span className="material-icons">skip_previous</span>
-        </button>
-        <button onClick={() => actions.playPause()}>
-          <span className="material-icons">
-            {playerData?.playing ? 'pause' : 'play_arrow'}
-          </span>
-        </button>
-        <button onClick={() => actions.skipForward()}>
-          <span className="material-icons">skip_next</span>
-        </button>
-        <button
-          data-repeat-state={playerData?.repeat_state !== 'off'}
-          onClick={() =>
-            actions.repeat(
-              playerData?.repeat_state === 'off'
-                ? 'context'
-                : playerData?.repeat_state === 'context'
-                  ? 'track'
-                  : 'off'
-            )
-          }
-        >
-          <span className="material-icons">
-            {playerData?.repeat_state === 'off'
-              ? 'repeat'
-              : playerData?.repeat_state === 'context'
-                ? 'repeat'
-                : 'repeat_one'}
-          </span>
-        </button>
-      </div>
+        </>
+      ) : (
+        <div className={styles.notPlaying}>
+          <span className="material-icons">music_note</span>
+          <p className={styles.title}>Nothing playing!</p>
+          <p className={styles.note}>
+            Open Spotify on your computer and start playing something.
+          </p>
+        </div>
+      )}
     </div>
   )
 }
