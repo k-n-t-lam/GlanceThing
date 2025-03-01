@@ -356,9 +356,10 @@ const ClientTab: React.FC = () => {
         dateFormat: ((await window.api.getStorageValue('dateFormat')) ||
           'ddd, D MMM') as string,
         autoBrightness:
-          ((await window.api.getStorageValue('autoBrightness')) ||
+          ((await window.api.getStorageValue('autoBrightness')) ??
             true) === true,
-        brightness: await window.api.getBrightness(),
+        brightness: ((await window.api.getStorageValue('brightness')) ??
+          0.5) as number,
         sleepMethod: ((await window.api.getStorageValue('sleepMethod')) ||
           'sleep') as string
       }
@@ -413,7 +414,9 @@ const ClientTab: React.FC = () => {
           min={0}
           max={1}
           step={0.05}
-          onRelease={value => window.api.setBrightness(value)}
+          onRelease={value =>
+            window.api.setStorageValue('brightness', value as number)
+          }
         />
         <SelectSetting
           label="Sleep Method"

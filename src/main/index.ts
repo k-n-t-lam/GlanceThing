@@ -29,7 +29,9 @@ import {
   forwardSocketServer,
   getAdbExecutable,
   getBrightness,
-  setBrightnessSmooth
+  setBrightnessSmooth,
+  getAutoBrightness,
+  setAutoBrightness
 } from './lib/adb.js'
 import {
   getShortcuts,
@@ -258,6 +260,16 @@ async function setupIpcHandlers() {
       if (installed) {
         mainWindow?.webContents.send('carThingState', 'ready')
         await forwardSocketServer(found)
+
+        const autoBrightness = getStorageValue('autoBrightness') ?? true
+        if ((await getAutoBrightness(found)) !== autoBrightness)
+          setAutoBrightness(found, autoBrightness)
+
+        if (!autoBrightness) {
+          const brightness = getStorageValue('brightness') ?? 0.5
+          if ((await getBrightness(found)) !== brightness)
+            setBrightnessSmooth(found, brightness)
+        }
       } else {
         const willAutoInstall = getStorageValue('installAutomatically')
         if (willAutoInstall) {

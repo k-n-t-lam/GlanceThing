@@ -152,6 +152,19 @@ export async function setAutoBrightness(
   )
 }
 
+export async function getAutoBrightness(device: string | null) {
+  if (!device) device = await findCarThing()
+  if (!device) throw new Error('No valid CarThing found')
+
+  const adb = await getAdbExecutable()
+  log('Getting auto brightness...', 'adb', LogLevel.DEBUG)
+  const res = await execAsync(
+    `${adb} -s ${device} shell "supervisorctl status backlight"`
+  )
+
+  return res.includes('RUNNING')
+}
+
 function parseBrightness(brightness: string) {
   return 1 - parseInt(brightness) / 255
 }
