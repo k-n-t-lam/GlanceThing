@@ -114,7 +114,7 @@ app.on('ready', async () => {
   if (!gotLock) return app.quit()
 
   loadStorage()
-  setLogLevel(getStorageValue('logLevel') || LogLevel.INFO)
+  setLogLevel(getStorageValue('logLevel') ?? LogLevel.INFO)
 
   if (
     process.env.NODE_ENV === 'development' &&
