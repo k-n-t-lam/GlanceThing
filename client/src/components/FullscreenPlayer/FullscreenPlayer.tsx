@@ -28,6 +28,7 @@ const FullescreenPlayer: React.FC<FullescreenPlayerProps> = ({
 
   useEffect(() => {
     if (shown) playerRef.current?.focus()
+    else playerRef.current?.blur()
   }, [shown])
 
   function onKeyDown(e: KeyboardEvent<HTMLDivElement>) {
@@ -40,6 +41,8 @@ const FullescreenPlayer: React.FC<FullescreenPlayerProps> = ({
       onWheel({ deltaX: -1 } as WheelEvent<HTMLDivElement>)
     } else if (e.key === 'ArrowRight') {
       onWheel({ deltaX: 1 } as WheelEvent<HTMLDivElement>)
+    } else if (e.key === 'Escape') {
+      setShown(false)
     }
   }
 
