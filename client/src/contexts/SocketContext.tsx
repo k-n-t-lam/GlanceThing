@@ -65,6 +65,45 @@ const SocketContextProvider = ({
     // eslint-disable-next-line
   }, [])
 
+  const missedPongsRef = useRef(0)
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  useEffect(() => {
+    if (!ready) return
+
+    const sendPing = () => {
+      if (ws.current!.readyState === WebSocket.OPEN) {
+        ws.current!.send(JSON.stringify({ type: 'ping' }))
+
+        timeoutRef.current = setTimeout(() => {
+          missedPongsRef.current += 1
+          if (missedPongsRef.current >= 3) {
+            ws.current?.close()
+            ws.current?.onclose?.({} as CloseEvent)
+            missedPongsRef.current = 0
+          }
+        }, 5000)
+      }
+    }
+
+    const listener = (e: MessageEvent) => {
+      const { type } = JSON.parse(e.data)
+      if (type !== 'pong') return
+
+      if (timeoutRef.current) clearTimeout(timeoutRef.current)
+      missedPongsRef.current = 0
+    }
+
+    ws.current!.addEventListener('message', listener)
+    const interval = setInterval(sendPing, 5000)
+
+    return () => {
+      clearInterval(interval)
+      if (timeoutRef.current) clearTimeout(timeoutRef.current)
+      ws.current!.removeEventListener('message', listener)
+    }
+  }, [ready])
+
   return (
     <SocketContext.Provider
       value={{
