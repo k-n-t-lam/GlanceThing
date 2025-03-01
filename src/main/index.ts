@@ -99,8 +99,20 @@ function createWindow(): void {
   }
 }
 
+app.on('second-instance', () => {
+  if (mainWindow) {
+    mainWindow.focus()
+  } else {
+    createWindow()
+  }
+})
+
 app.on('ready', async () => {
   log('Welcome!', 'GlanceThing')
+
+  const gotLock = app.requestSingleInstanceLock()
+  if (!gotLock) return app.quit()
+
   loadStorage()
   setLogLevel(getStorageValue('logLevel') || LogLevel.INFO)
 
