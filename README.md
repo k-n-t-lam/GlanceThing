@@ -32,6 +32,7 @@ Here you will see your current Spotify player status, as well as your app shortc
 The buttons 1, 2 and 3 (from the left) will focus the Spotify, shortcuts and actions widgets respectively.
 
 Pressing the M button (right-most button) will bring up the system menu where you can choose to put your device to sleep, or restore your device to the original Spotify software.
+
 <img src=".github/assets/menu.png" width="400" />
 
 Using the dial will:
