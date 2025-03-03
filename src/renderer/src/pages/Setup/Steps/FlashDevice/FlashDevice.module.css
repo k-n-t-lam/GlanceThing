@@ -9,6 +9,11 @@
   animation: appearH 500ms ease;
 }
 
+.flash > button {
+  width: fit-content;
+  margin: 5px 0;
+}
+
 .step {
   color: #999;
   text-transform: uppercase;

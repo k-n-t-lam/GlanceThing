@@ -47,14 +47,22 @@ const FlashDevice: React.FC<FlashDeviceProps> = ({ onStepComplete }) => {
     <div className={styles.flash}>
       <p className={styles.step}>Step 1</p>
       <h1>Flash your device</h1>
-      <p>First, you have to flash your device with a custom firmware.</p>
-      <a
-        href="https://github.com/BluDood/GlanceThing/wiki/Flashing-the-CarThing"
-        target="_blank"
-        rel="noreferrer"
+      <p>
+        First, you have to flash your device with a custom firmware.
+        <br />
+        This can easily be done with ThingFlash, which provides a guided
+        process for flashing your CarThing.
+      </p>
+      <p>The current recommended image is Thing Labs 8.9.2.</p>
+      <button
+        onClick={() =>
+          window.open(
+            'https://github.com/BluDood/ThingFlash/releases/latest'
+          )
+        }
       >
-        Follow the guide here.
-      </a>
+        Download ThingFlash
+      </button>
       <p>
         Once you have completed the flash, press &quot;Find Car Thing&quot;
       </p>
