@@ -49,6 +49,7 @@ Using the dial will:
 You can also use the album cover as a playback controller. Press once to play/pause, twice to skip forward and three times to skip backwards.
 
 Pressing the Back button (below the dial) reveals a fullscreen media player, which can be used with the same controls as the Spotify widgets, as well as extra tappable buttons like shuffle and repeat. Press the back button again or the arrow down icon to close.
+
 <img src=".github/assets/fullscreen.png" width="400" />
 
 ### Desktop companion
