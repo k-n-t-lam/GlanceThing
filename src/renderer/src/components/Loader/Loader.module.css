@@ -1,8 +1,7 @@
 .loader:after {
   display: block;
   content: '';
-  width: 32px;
-  height: 32px;
+  aspect-ratio: 1;
   border-radius: 50%;
   border: 5px solid rgba(0, 150, 255, 0.5);
   border-top-color: rgba(0, 150, 255, 1);

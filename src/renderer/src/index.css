@@ -60,3 +60,7 @@ input[type='password']:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+::-webkit-scrollbar {
+  display: none;
+}

@@ -3,6 +3,7 @@ import React, { useContext, useEffect, useRef, useState } from 'react'
 import { DevModeContext } from '@/contexts/DevModeContext.js'
 import { ModalContext } from '@/contexts/ModalContext.js'
 
+import Loader from '@/components/Loader/Loader.js'
 import Switch from '@/components/Switch/Switch.js'
 
 import styles from './Settings.module.css'
@@ -347,6 +348,10 @@ const ClientTab: React.FC = () => {
   }>({})
 
   const [autoBrightness, setAutoBrightness] = useState(false)
+  const [patches, setPatches] = useState<
+    { name: string; description: string; installed: boolean }[] | null
+  >(null)
+  const [isDev, setIsDev] = useState(false)
 
   useEffect(() => {
     async function loadSettings() {
@@ -367,8 +372,23 @@ const ClientTab: React.FC = () => {
       setLoaded(true)
     }
 
+    window.api.isDevMode().then(setIsDev)
+
     loadSettings()
+    loadPatches()
   }, [])
+
+  async function loadPatches() {
+    setPatches(null)
+    const patches = await window.api.getPatches()
+
+    setPatches(patches)
+  }
+
+  async function applyPatch(patchName: string) {
+    await window.api.applyPatch(patchName)
+    loadPatches()
+  }
 
   return (
     loaded && (
@@ -433,8 +453,52 @@ const ClientTab: React.FC = () => {
             window.api.setStorageValue('sleepMethod', value as string)
           }
         />
+        {patches && isDev ? (
+          <div className={styles.patches}>
+            <h2>Patches</h2>
+            {patches.map(patch => (
+              <Patch
+                key={patch.name}
+                {...patch}
+                onApply={() => applyPatch(patch.name)}
+              />
+            ))}
+          </div>
+        ) : null}
       </div>
     )
+  )
+}
+
+const Patch: React.FC<{
+  name: string
+  description: string
+  installed: boolean
+  onApply: () => void
+}> = ({ name, description, installed, onApply }) => {
+  const [applying, setApplying] = useState(false)
+
+  return (
+    <div className={styles.patch}>
+      <div className={styles.info}>
+        <h3>{name}</h3>
+        <p>{description}</p>
+      </div>
+      {applying ? (
+        <Loader />
+      ) : installed ? (
+        <span className="material-icons">check</span>
+      ) : (
+        <button
+          onClick={() => {
+            setApplying(true)
+            onApply()
+          }}
+        >
+          <span className="material-icons">get_app</span>
+        </button>
+      )}
+    </div>
   )
 }
 

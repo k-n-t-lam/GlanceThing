@@ -35,6 +35,10 @@ declare global {
       setSpotifyToken: (token: string) => Promise<boolean>
       getBrightness: () => Promise<number>
       setBrightness: (brightness: number) => Promise<void>
+      getPatches: () => Promise<
+        { name: string; description: string; installed: boolean }[]
+      >
+      applyPatch: (patchName: string) => Promise<void>
     }
   }
 }

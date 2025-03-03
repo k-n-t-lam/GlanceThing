@@ -20,6 +20,7 @@ import {
   setSpotifyDc,
   setStorageValue
 } from './lib/storage.js'
+import { applyPatch, getPatches } from './lib/patches.js'
 import { isDev, log, LogLevel, setLogLevel } from './lib/utils.js'
 import { startServer, stopServer, isServerStarted } from './lib/server.js'
 import {
@@ -190,7 +191,9 @@ enum IPCHandler {
   IsDevMode = 'isDevMode',
   SetSpotifyToken = 'setSpotifyToken',
   GetBrightness = 'getBrightness',
-  SetBrightness = 'setBrightness'
+  SetBrightness = 'setBrightness',
+  GetPatches = 'getPatches',
+  ApplyPatch = 'applyPatch'
 }
 
 async function setupIpcHandlers() {
@@ -344,6 +347,14 @@ async function setupIpcHandlers() {
 
   ipcMain.handle(IPCHandler.SetBrightness, async (_event, value) => {
     return await setBrightnessSmooth(null, value)
+  })
+
+  ipcMain.handle(IPCHandler.GetPatches, async () => {
+    return await getPatches()
+  })
+
+  ipcMain.handle(IPCHandler.ApplyPatch, async (_event, patch) => {
+    return await applyPatch(patch)
   })
 }
 

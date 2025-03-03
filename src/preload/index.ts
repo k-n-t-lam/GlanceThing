@@ -28,7 +28,9 @@ enum IPCHandler {
   IsDevMode = 'isDevMode',
   SetSpotifyToken = 'setSpotifyToken',
   GetBrightness = 'getBrightness',
-  SetBrightness = 'setBrightness'
+  SetBrightness = 'setBrightness',
+  GetPatches = 'getPatches',
+  ApplyPatch = 'applyPatch'
 }
 
 // Custom APIs for renderer
@@ -71,7 +73,10 @@ const api = {
     ipcRenderer.invoke(IPCHandler.SetSpotifyToken, token),
   getBrightness: () => ipcRenderer.invoke(IPCHandler.GetBrightness),
   setBrightness: (brightness: number) =>
-    ipcRenderer.invoke(IPCHandler.SetBrightness, brightness)
+    ipcRenderer.invoke(IPCHandler.SetBrightness, brightness),
+  getPatches: () => ipcRenderer.invoke(IPCHandler.GetPatches),
+  applyPatch: (patchName: string) =>
+    ipcRenderer.invoke(IPCHandler.ApplyPatch, patchName)
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to
