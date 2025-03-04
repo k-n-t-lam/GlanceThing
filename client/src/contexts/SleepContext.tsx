@@ -58,8 +58,12 @@ const SleepContextProvider = ({ children }: SleepContextProviderProps) => {
     if (ready === true && socket) {
       const listener = (e: MessageEvent) => {
         const { type, data } = JSON.parse(e.data)
-        if (type !== 'sleep') return
-        setSleepState(data)
+
+        if (type === 'sleep') {
+          setSleepState(data)
+        } else if (type === 'wake') {
+          setSleepState('off')
+        }
       }
 
       socket.addEventListener('message', listener)
