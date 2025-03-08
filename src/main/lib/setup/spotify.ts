@@ -1,6 +1,7 @@
 import { filterData, setupSpotify } from '../spotify.js'
 import { getSpotifyDc } from '../storage.js'
 import { wss } from '../server.js'
+import { log } from '../utils.js'
 
 import { AuthenticatedWebSocket } from '../../types/WebSocketServer.js'
 import { SetupFunction } from '../../types/WebSocketSetup.js'
@@ -42,6 +43,23 @@ export const setup: SetupFunction = async () => {
         )
       }
     })
+  })
+
+  spotify.on('close', async () => {
+    log(
+      'Connection closed, attempting to reopen after 5 seconds...',
+      'Spotify'
+    )
+    await new Promise(r => setTimeout(r, 5000))
+    await spotify.start()
+  })
+
+  spotify.on('open', () => {
+    log('Connection opened', 'Spotify')
+  })
+
+  spotify.on('error', err => {
+    log(`An error occurred: ${err}`, 'Spotify')
   })
 
   await spotify.start()

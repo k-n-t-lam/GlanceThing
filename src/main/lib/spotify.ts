@@ -227,6 +227,7 @@ class SpotifyAPI extends EventEmitter {
     const ping = () => this.ws!.send('{"type":"ping"}')
 
     this.ws.on('open', () => {
+      this.emit('open')
       ping()
       const interval = setInterval(() => {
         if (!this.ws) return clearInterval(interval)
