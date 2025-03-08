@@ -201,14 +201,16 @@ const FullescreenPlayer: React.FC<FullescreenPlayerProps> = ({
                 </button>
               </div>
             )}
-            <button
-              data-shuffle-state={playerData?.shuffle_state}
-              onClick={() =>
-                actions.shuffle(playerData?.shuffle_state ? false : true)
-              }
-            >
-              <span className="material-icons">shuffle</span>
-            </button>
+            {playerData?.type === 'track' ? (
+              <button
+                data-shuffle-state={playerData?.shuffle_state}
+                onClick={() =>
+                  actions.shuffle(playerData?.shuffle_state ? false : true)
+                }
+              >
+                <span className="material-icons">shuffle</span>
+              </button>
+            ) : null}
             <button onClick={() => actions.skipBackward()}>
               <span className="material-icons">skip_previous</span>
             </button>
@@ -220,26 +222,28 @@ const FullescreenPlayer: React.FC<FullescreenPlayerProps> = ({
             <button onClick={() => actions.skipForward()}>
               <span className="material-icons">skip_next</span>
             </button>
-            <button
-              data-repeat-state={playerData?.repeat_state !== 'off'}
-              onClick={() =>
-                actions.repeat(
-                  playerData?.repeat_state === 'off'
-                    ? 'context'
-                    : playerData?.repeat_state === 'context'
-                      ? 'track'
-                      : 'off'
-                )
-              }
-            >
-              <span className="material-icons">
-                {playerData?.repeat_state === 'off'
-                  ? 'repeat'
-                  : playerData?.repeat_state === 'context'
+            {playerData?.type === 'track' ? (
+              <button
+                data-repeat-state={playerData?.repeat_state !== 'off'}
+                onClick={() =>
+                  actions.repeat(
+                    playerData?.repeat_state === 'off'
+                      ? 'context'
+                      : playerData?.repeat_state === 'context'
+                        ? 'track'
+                        : 'off'
+                  )
+                }
+              >
+                <span className="material-icons">
+                  {playerData?.repeat_state === 'off'
                     ? 'repeat'
-                    : 'repeat_one'}
-              </span>
-            </button>
+                    : playerData?.repeat_state === 'context'
+                      ? 'repeat'
+                      : 'repeat_one'}
+                </span>
+              </button>
+            ) : null}
           </div>
         </>
       ) : (

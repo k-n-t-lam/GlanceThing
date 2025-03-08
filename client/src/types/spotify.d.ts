@@ -1,5 +1,6 @@
 export interface FilteredSpotifyCurrentPlayingResponse {
   session: true
+  type: 'track' | 'episode'
   playing: boolean
   name: string
   trackURL: string

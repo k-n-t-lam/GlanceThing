@@ -14,16 +14,25 @@ export const setup: SetupFunction = async () => {
 
   spotify.on('PLAYER_STATE_CHANGED', data => {
     if (!wss) return
-    wss.clients.forEach((ws: AuthenticatedWebSocket) => {
+    wss.clients.forEach(async (ws: AuthenticatedWebSocket) => {
       if (!ws.authenticated) return
 
       if (ws.readyState === 1) {
-        ws.send(
-          JSON.stringify({
-            type: 'spotify',
-            data: filterData(data.state)
-          })
-        )
+        if (data.state.currently_playing_type === 'episode') {
+          ws.send(
+            JSON.stringify({
+              type: 'spotify',
+              data: await spotify.getCurrent()
+            })
+          )
+        } else if (data.state.currently_playing_type === 'track') {
+          ws.send(
+            JSON.stringify({
+              type: 'spotify',
+              data: filterData(data.state)
+            })
+          )
+        }
       }
     })
   })

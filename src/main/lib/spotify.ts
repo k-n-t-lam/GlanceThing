@@ -45,6 +45,55 @@ export async function getToken(sp_dc: string) {
   return json.accessToken
 }
 
+interface SpotifyTrackItem {
+  name: string
+  external_urls: {
+    spotify: string
+  }
+  artists: {
+    name: string
+    external_urls: {
+      spotify: string
+    }
+  }[]
+  album: {
+    name: string
+    href: string
+    images: {
+      url: string
+      width: number
+      height: number
+    }[]
+  }
+  duration_ms: number
+}
+
+interface SpotifyEpisodeItem {
+  name: string
+  external_urls: {
+    spotify: string
+  }
+  images: {
+    url: string
+    width: number
+    height: number
+  }[]
+  show: {
+    name: string
+    publisher: string
+    external_urls: {
+      spotify: string
+    }
+    href: string
+    images: {
+      url: string
+      width: number
+      height: number
+    }[]
+  }
+  duration_ms: number
+}
+
 export interface SpotifyCurrentPlayingResponse {
   device: {
     id: string
@@ -68,33 +117,14 @@ export interface SpotifyCurrentPlayingResponse {
   }
   timestamp: number
   progress_ms: number
+  currently_playing_type: 'track' | 'episode'
   is_playing: boolean
-  item: {
-    name: string
-    external_urls: {
-      spotify: string
-    }
-    artists: {
-      name: string
-      external_urls: {
-        spotify: string
-      }
-    }[]
-    album: {
-      name: string
-      href: string
-      images: {
-        url: string
-        width: number
-        height: number
-      }[]
-    }
-    duration_ms: number
-  }
+  item: SpotifyTrackItem | SpotifyEpisodeItem
 }
 
 interface FilteredSpotifyCurrentPlayingResponse {
   session: true
+  type: 'track' | 'episode'
   playing: boolean
   name: string
   trackURL: string
@@ -134,6 +164,7 @@ export function filterData(
     is_playing,
     item,
     progress_ms,
+    currently_playing_type,
     device,
     repeat_state,
     shuffle_state
@@ -145,29 +176,71 @@ export function filterData(
     }
   }
 
-  return {
-    session: true,
-    playing: is_playing,
-    name: item.name,
-    trackURL: item.external_urls.spotify,
-    repeat_state,
-    shuffle_state,
-    artists: item.artists.map(a => ({
-      name: a.name,
-      url: a.external_urls.spotify
-    })),
-    album: {
-      name: item.album.name,
-      url: item.album.href
-    },
-    covers: item.album.images,
-    duration: {
-      current: progress_ms,
-      total: item.duration_ms
-    },
-    device: {
-      volume_percent: device.volume_percent,
-      supports_volume: device.supports_volume
+  if (currently_playing_type === 'episode') {
+    const item = data.item as SpotifyEpisodeItem
+
+    return {
+      session: true,
+      type: 'episode',
+      playing: is_playing,
+      name: item.name,
+      trackURL: item.external_urls.spotify,
+      repeat_state,
+      shuffle_state,
+      artists: item.show.publisher
+        ? [
+            {
+              name: item.show.publisher,
+              url: item.show.external_urls.spotify
+            }
+          ]
+        : [],
+      album: {
+        name: item.show.name,
+        url: item.show.href
+      },
+      covers: item.images,
+      duration: {
+        current: progress_ms,
+        total: item.duration_ms
+      },
+      device: {
+        volume_percent: device.volume_percent,
+        supports_volume: device.supports_volume
+      }
+    }
+  } else if (currently_playing_type === 'track') {
+    const item = data.item as SpotifyTrackItem
+
+    return {
+      session: true,
+      type: 'track',
+      playing: is_playing,
+      name: item.name,
+      trackURL: item.external_urls.spotify,
+      repeat_state,
+      shuffle_state,
+      artists: item.artists.map(a => ({
+        name: a.name,
+        url: a.external_urls.spotify
+      })),
+      album: {
+        name: item.album.name,
+        url: item.album.href
+      },
+      covers: item.album.images,
+      duration: {
+        current: progress_ms,
+        total: item.duration_ms
+      },
+      device: {
+        volume_percent: device.volume_percent,
+        supports_volume: device.supports_volume
+      }
+    }
+  } else {
+    return {
+      session: false
     }
   }
 }
@@ -265,7 +338,11 @@ class SpotifyAPI extends EventEmitter {
   async getCurrent(): Promise<
     FilteredSpotifyCurrentPlayingResponse | NoSessionResponse
   > {
-    const res = await this.instance.get('/me/player')
+    const res = await this.instance.get('/me/player', {
+      params: {
+        additional_types: 'episode'
+      }
+    })
 
     if (!res.data)
       return {
