@@ -374,19 +374,19 @@ class SpotifyAPI extends EventEmitter {
       }
     )
 
-    return res.status === 204
+    return res.status === 200
   }
 
   async next() {
     const res = await this.instance.post('/me/player/next')
 
-    return res.status === 204
+    return res.status === 200
   }
 
   async previous() {
     const res = await this.instance.post('/me/player/previous')
 
-    return res.status === 204
+    return res.status === 200
   }
 
   async shuffle(state: boolean) {
@@ -396,7 +396,7 @@ class SpotifyAPI extends EventEmitter {
       }
     })
 
-    return res.status === 204
+    return res.status === 200
   }
 
   async repeat(state: 'track' | 'context' | 'off') {
@@ -406,7 +406,7 @@ class SpotifyAPI extends EventEmitter {
       }
     })
 
-    return res.status === 204
+    return res.status === 200
   }
 }
 
