@@ -11,7 +11,7 @@ import {
   log,
   LogLevel
 } from './utils.js'
-import { getServerPort, wss } from './server.js'
+import { getServerPort } from './server.js'
 import { getSocketPassword } from './storage.js'
 import { getWebAppDir } from './webapp.js'
 
@@ -106,14 +106,6 @@ export async function findCarThing() {
       else if (!carThingFound) {
         log(`Found CarThing: ${device}`, 'adb')
         carThingFound = true
-
-        wss!.clients.forEach(ws => {
-          ws.send(
-            JSON.stringify({
-              type: 'wake'
-            })
-          )
-        })
       }
       return device
     }

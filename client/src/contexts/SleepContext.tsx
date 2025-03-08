@@ -74,6 +74,17 @@ const SleepContextProvider = ({ children }: SleepContextProviderProps) => {
     }
   }, [ready, socket])
 
+  useEffect(() => {
+    if (ready) {
+      setSleepState('off')
+      socket!.send(
+        JSON.stringify({
+          type: 'wake'
+        })
+      )
+    }
+  }, [ready, socket])
+
   return (
     <SleepContext.Provider
       value={{

@@ -40,11 +40,6 @@ const SocketContextProvider = ({
       setReady(true)
       setTimeout(() => {
         setFirstLoad(false)
-        ws.current?.send(
-          JSON.stringify({
-            type: 'wake'
-          })
-        )
       }, 500)
     }
 
