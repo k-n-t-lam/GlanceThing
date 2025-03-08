@@ -24,6 +24,7 @@ const Shortcuts: React.FC = () => {
 
   const [adding, setAdding] = useState<boolean>(false)
   const [newShortcutCommand, setNewShortcutCommand] = useState<string>('')
+  const [hasSetImage, setHasSetImage] = useState(false)
 
   const [editing, setEditing] = useState<boolean>(false)
   const [editingShortcut, setEditingShortcut] = useState<Shortcut>({
@@ -54,6 +55,7 @@ const Shortcuts: React.FC = () => {
     setAdding(false)
     setNewShortcutCommand('')
     uploadImageRef.current!.src = ''
+    setHasSetImage(false)
   }
 
   async function removeShortcut(id: string) {
@@ -83,6 +85,7 @@ const Shortcuts: React.FC = () => {
     setAdding(false)
     setNewShortcutCommand('')
     uploadImageRef.current!.src = ''
+    setHasSetImage(false)
   }
 
   return (
@@ -136,6 +139,7 @@ const Shortcuts: React.FC = () => {
               const res = await window.api.uploadShortcutImage('new')
               if (!res) return
               uploadImageRef.current!.src = `shortcut://new?${Date.now()}`
+              setHasSetImage(true)
             }}
           >
             <img ref={uploadImageRef} src="" alt="" />
@@ -151,7 +155,10 @@ const Shortcuts: React.FC = () => {
             onChange={e => setNewShortcutCommand(e.target.value)}
           />
           <div className={styles.buttons}>
-            <button onClick={() => addShortcut(newShortcutCommand)}>
+            <button
+              onClick={() => addShortcut(newShortcutCommand)}
+              disabled={!newShortcutCommand || !hasSetImage}
+            >
               Add
             </button>
           </div>
@@ -187,7 +194,10 @@ const Shortcuts: React.FC = () => {
             >
               Delete
             </button>
-            <button onClick={() => updateShortcut(editingShortcut!)}>
+            <button
+              onClick={() => updateShortcut(editingShortcut!)}
+              disabled={!editingShortcut.command}
+            >
               Save
             </button>
           </div>
