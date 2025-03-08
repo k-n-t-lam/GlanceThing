@@ -5,6 +5,7 @@ import { SocketContext } from '@/contexts/SocketContext.tsx'
 
 import FullescreenPlayer from './components/FullscreenPlayer/FullscreenPlayer.tsx'
 import LoadingScreen from '@/components/LoadingScreen/LoadingScreen.tsx'
+import UpdateScreen from './components/UpdateScreen/UpdateScreen.tsx'
 import Statusbar from '@/components/Statusbar/Statusbar.tsx'
 import Widgets from '@/components/Widgets/Widgets.tsx'
 import Menu from '@/components/Menu/Menu.tsx'
@@ -38,6 +39,7 @@ const App: React.FC = () => {
         <FullescreenPlayer shown={playerShown} setShown={setPlayerShown} />
       </div>
       <LoadingScreen />
+      <UpdateScreen />
       <Menu />
     </>
   )

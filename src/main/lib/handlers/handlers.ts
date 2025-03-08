@@ -7,6 +7,8 @@ import * as restore from './restore.js'
 import * as sleep from './sleep.js'
 import * as spotify from './spotify.js'
 import * as time from './time.js'
+import * as update from './update.js'
+import * as version from './version.js'
 import * as wake from './wake.js'
 
 export const handlers: Handler[] = [
@@ -17,5 +19,7 @@ export const handlers: Handler[] = [
   sleep,
   spotify,
   time,
+  update,
+  version,
   wake
 ]
