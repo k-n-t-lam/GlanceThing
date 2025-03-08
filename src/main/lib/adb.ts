@@ -89,7 +89,7 @@ async function checkValidDevice(device: string) {
     `${adb} -s ${device} shell ls /usr/share/qt-superbird-app/webapp/`
   )
 
-  return res.includes('index.html')
+  return !res.includes('No such file or directory')
 }
 
 let carThingFound = false
