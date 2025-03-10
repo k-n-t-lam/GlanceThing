@@ -1,8 +1,7 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios'
-import { parse } from 'node-html-parser'
 import EventEmitter from 'events'
 import WebSocket from 'ws'
-import { log, safeParse } from './utils.js'
+import { log } from './utils.js'
 
 async function subscribe(connection_id: string, token: string) {
   return await axios.put(
@@ -21,28 +20,29 @@ async function subscribe(connection_id: string, token: string) {
 }
 
 export async function getToken(sp_dc: string) {
-  const res = await axios.get('https://open.spotify.com', {
-    headers: {
-      cookie: `sp_dc=${sp_dc};`,
-      'user-agent':
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
-    },
-    validateStatus: () => true
-  })
+  const res = await axios.get(
+    'https://open.spotify.com/get_access_token',
+    {
+      headers: {
+        cookie: `sp_dc=${sp_dc};`,
+        'user-agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
+      },
+      params: {
+        reason: 'init',
+        productType: 'web-player'
+      },
+      validateStatus: () => true
+    }
+  )
+
+  console.log(res.request)
 
   if (res.status !== 200) throw new Error('Invalid sp_dc')
 
-  const html = parse(res.data)
+  if (!res.data.accessToken) throw new Error('Invalid sp_dc')
 
-  const script = html.querySelector('script#session')
-
-  if (!script) throw new Error('Invalid sp_dc')
-
-  const json = safeParse(script.innerText)
-
-  if (!json) throw new Error('Invalid sp_dc')
-
-  return json.accessToken
+  return res.data.accessToken
 }
 
 interface SpotifyTrackItem {
