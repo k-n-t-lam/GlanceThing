@@ -36,8 +36,6 @@ export async function getToken(sp_dc: string) {
     }
   )
 
-  console.log(res.request)
-
   if (res.status !== 200) throw new Error('Invalid sp_dc')
 
   if (!res.data.accessToken) throw new Error('Invalid sp_dc')
