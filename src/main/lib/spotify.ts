@@ -284,7 +284,10 @@ class SpotifyAPI extends EventEmitter {
   }
 
   async start() {
-    this.token = await getToken(this.sp_dc)
+    this.token = await getToken(this.sp_dc).catch(err => {
+      this.emit('error', err)
+      return null
+    })
 
     this.ws = new WebSocket(
       `wss://dealer.spotify.com/?access_token=${this.token}`
