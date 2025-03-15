@@ -28,6 +28,7 @@
     "node-cron": "^3.0.3",
     "party-js": "^2.2.0",
     "react-router-dom": "^6.26.2",
+    "totp-generator": "^1.0.0",
     "uuid": "^11.0.2",
     "ws": "^8.18.0"
   },
