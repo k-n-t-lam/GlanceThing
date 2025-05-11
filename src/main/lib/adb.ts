@@ -8,6 +8,7 @@ import {
   execAsync,
   getLogLevel,
   getPlatformADB,
+  getPlatformTar,
   log,
   LogLevel
 } from './utils.js'
@@ -58,7 +59,7 @@ export async function getAdbExecutable() {
   log('Downloaded ADB!', 'adb')
 
   const extract = await execAsync(
-    `tar -xf ${downloadPath} -C "${userDataPath}"`
+    `${getPlatformTar()} -xf ${downloadPath} -C "${userDataPath}"`
   )
 
   if (extract === null) {

@@ -135,3 +135,15 @@ export function getPlatformADB() {
       }
   }
 }
+
+export function getPlatformTar() {
+  const os = platform()
+
+  switch (os) {
+    case 'win32':
+      return 'C:\\Windows\\System32\\tar.exe'
+
+    default:
+      return 'tar'
+  }
+}

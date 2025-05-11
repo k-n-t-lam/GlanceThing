@@ -3,7 +3,13 @@ import axios from 'axios'
 import path from 'path'
 import fs from 'fs'
 
-import { execAsync, isDev, log, LogLevel } from './utils.js'
+import {
+  execAsync,
+  getPlatformTar,
+  isDev,
+  log,
+  LogLevel
+} from './utils.js'
 
 export async function getWebAppDir() {
   if (isDev() && fs.existsSync(path.join(process.cwd(), 'client/dist'))) {
@@ -57,7 +63,7 @@ export async function getWebAppDir() {
   if (!fs.existsSync(extractPath)) fs.mkdirSync(extractPath)
 
   const extract = await execAsync(
-    `tar -xf ${zipPath} -C ${extractPath}`
+    `${getPlatformTar()} -xf ${zipPath} -C ${extractPath}`
   ).catch(() => null)
 
   if (extract === null) {
