@@ -8,7 +8,6 @@ import React, {
 } from 'react'
 
 import { MediaContext } from '@/contexts/MediaContext.tsx'
-import { SocketContext } from '@/contexts/SocketContext.tsx'
 
 import styles from './FullescreenPlayer.module.css'
 
@@ -21,9 +20,9 @@ const FullescreenPlayer: React.FC<FullescreenPlayerProps> = ({
   shown,
   setShown
 }) => {
-  const { socket } = useContext(SocketContext)
-  const { image, playerData, actions } = useContext(MediaContext)
-  const playerDataRef = useRef(playerData)
+  const { image, playerData, playerDataRef, actions } =
+    useContext(MediaContext)
+
   const playerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -61,21 +60,14 @@ const FullescreenPlayer: React.FC<FullescreenPlayerProps> = ({
 
   function volumeUp() {
     if (playerDataRef.current === null) return
+    if (!playerDataRef.current.supportedActions.includes('volume')) return
 
     const volume = volumeRef.current
 
     if (volume < 100) {
       const newVolume = Math.min(volume + 10, 100)
 
-      socket?.send(
-        JSON.stringify({
-          type: 'spotify',
-          action: 'volume',
-          data: {
-            amount: newVolume
-          }
-        })
-      )
+      actions.setVolume(newVolume)
       setVolume(newVolume)
       volumeRef.current = newVolume
       lastVolumeChange.current = Date.now()
@@ -84,30 +76,19 @@ const FullescreenPlayer: React.FC<FullescreenPlayerProps> = ({
 
   function volumeDown() {
     if (playerDataRef.current === null) return
+    if (!playerDataRef.current.supportedActions.includes('volume')) return
 
     const volume = volumeRef.current
 
     if (volume > 0) {
       const newVolume = Math.max(volume - 10, 0)
-      socket?.send(
-        JSON.stringify({
-          type: 'spotify',
-          action: 'volume',
-          data: {
-            amount: newVolume
-          }
-        })
-      )
+      actions.setVolume(newVolume)
 
       setVolume(newVolume)
       volumeRef.current = newVolume
       lastVolumeChange.current = Date.now()
     }
   }
-
-  useEffect(() => {
-    playerDataRef.current = playerData
-  }, [playerData])
 
   useEffect(() => {
     setVolumeAdjusted(true)
@@ -121,27 +102,13 @@ const FullescreenPlayer: React.FC<FullescreenPlayerProps> = ({
   }, [volume])
 
   useEffect(() => {
-    if (socket) {
-      const listener = (e: MessageEvent) => {
-        const { type, action, data } = JSON.parse(e.data)
-        if (type !== 'spotify') return
-
-        if (!data || action || !data.session) return
-
-        if (lastVolumeChange.current < Date.now() - 1000) {
-          setVolume(data.device.volume_percent)
-          volumeRef.current = data.device.volume_percent
-        }
-      }
-      socket.addEventListener('message', listener)
-
-      socket.send(JSON.stringify({ type: 'spotify' }))
-
-      return () => {
-        socket.removeEventListener('message', listener)
+    if (playerData) {
+      if (lastVolumeChange.current < Date.now() - 1000) {
+        setVolume(playerData.volume)
+        volumeRef.current = playerData.volume
       }
     }
-  }, [socket])
+  }, [playerData])
 
   return (
     <div
@@ -165,11 +132,17 @@ const FullescreenPlayer: React.FC<FullescreenPlayerProps> = ({
         <>
           <img src={image || ''} alt="" className={styles.background} />
           <div className={styles.track}>
-            <img src={image || ''} alt="" />
+            <div className={styles.cover}>
+              {image ? (
+                <img src={image || ''} alt="" />
+              ) : (
+                <span className="material-icons">music_note</span>
+              )}
+            </div>
             <div className={styles.info}>
-              <div className={styles.title}>{playerData?.name}</div>
+              <div className={styles.title}>{playerData.track.name}</div>
               <div className={styles.artist}>
-                {playerData?.artists.map(a => a.name).join(', ')}
+                {playerData.track.artists.join(', ')}
               </div>
             </div>
           </div>
@@ -177,7 +150,7 @@ const FullescreenPlayer: React.FC<FullescreenPlayerProps> = ({
             <div
               className={styles.bar}
               style={{
-                width: `${((playerData?.duration.current || 0) / (playerData?.duration.total || 1)) * 100}%`
+                width: `${(playerData.track.duration.current / playerData.track.duration.total) * 100}%`
               }}
             ></div>
           </div>
@@ -185,7 +158,7 @@ const FullescreenPlayer: React.FC<FullescreenPlayerProps> = ({
             className={styles.controls}
             data-hide-buttons={volumeAdjusted}
           >
-            {playerData?.device.supports_volume && (
+            {playerData.supportedActions.includes('volume') && (
               <div className={styles.volume} data-shown={volumeAdjusted}>
                 <button onMouseDown={volumeDown}>
                   <span className="material-icons"> volume_down </span>
@@ -201,11 +174,11 @@ const FullescreenPlayer: React.FC<FullescreenPlayerProps> = ({
                 </button>
               </div>
             )}
-            {playerData?.type === 'track' ? (
+            {playerData.supportedActions.includes('shuffle') ? (
               <button
-                data-shuffle-state={playerData?.shuffle_state}
+                data-shuffle-state={playerData?.shuffle}
                 onClick={() =>
-                  actions.shuffle(playerData?.shuffle_state ? false : true)
+                  actions.shuffle(playerData?.shuffle ? false : true)
                 }
               >
                 <span className="material-icons">shuffle</span>
@@ -216,29 +189,29 @@ const FullescreenPlayer: React.FC<FullescreenPlayerProps> = ({
             </button>
             <button onClick={() => actions.playPause()}>
               <span className="material-icons">
-                {playerData?.playing ? 'pause' : 'play_arrow'}
+                {playerData?.isPlaying ? 'pause' : 'play_arrow'}
               </span>
             </button>
             <button onClick={() => actions.skipForward()}>
               <span className="material-icons">skip_next</span>
             </button>
-            {playerData?.type === 'track' ? (
+            {playerData.supportedActions.includes('repeat') ? (
               <button
-                data-repeat-state={playerData?.repeat_state !== 'off'}
+                data-repeat-state={playerData?.repeat !== 'off'}
                 onClick={() =>
                   actions.repeat(
-                    playerData?.repeat_state === 'off'
-                      ? 'context'
-                      : playerData?.repeat_state === 'context'
-                        ? 'track'
+                    playerData?.repeat === 'off'
+                      ? 'on'
+                      : playerData?.repeat === 'on'
+                        ? 'one'
                         : 'off'
                   )
                 }
               >
                 <span className="material-icons">
-                  {playerData?.repeat_state === 'off'
+                  {playerData?.repeat === 'off'
                     ? 'repeat'
-                    : playerData?.repeat_state === 'context'
+                    : playerData?.repeat === 'on'
                       ? 'repeat'
                       : 'repeat_one'}
                 </span>
@@ -251,7 +224,7 @@ const FullescreenPlayer: React.FC<FullescreenPlayerProps> = ({
           <span className="material-icons">music_note</span>
           <p className={styles.title}>Nothing playing!</p>
           <p className={styles.note}>
-            Open Spotify on your computer and start playing something.
+            Start playing something on your computer.
           </p>
         </div>
       )}

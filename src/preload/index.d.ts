@@ -32,13 +32,22 @@ declare global {
       removeShortcut: (id: string) => Promise<void>
       updateShortcut: (shortcut: Shortcut) => Promise<void>
       isDevMode: () => Promise<boolean>
-      setSpotifyToken: (token: string) => Promise<boolean>
       getBrightness: () => Promise<number>
       setBrightness: (brightness: number) => Promise<void>
       getPatches: () => Promise<
         { name: string; description: string; installed: boolean }[]
       >
       applyPatch: (patchName: string) => Promise<void>
+      validateConfig: (
+        handlerName: string,
+        config: unknown
+      ) => Promise<boolean>
+      getPlaybackHandlerConfig: (handlerName: string) => Promise<unknown>
+      setPlaybackHandlerConfig: (
+        handlerName: string,
+        config: unknown
+      ) => Promise<void>
+      restartPlaybackHandler: () => Promise<void>
     }
   }
 }

@@ -1,4 +1,4 @@
-.spotify {
+.playback {
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -7,6 +7,7 @@
   gap: 10px;
   padding: 50px;
   animation: appearH 500ms ease;
+  flex: 1;
 }
 
 .step {
@@ -16,7 +17,7 @@
   font-weight: 600;
 }
 
-.spotify h1 {
+.playback h1 {
   font-size: 2.2rem;
 }
 
@@ -28,6 +29,10 @@
   width: 100%;
   justify-content: flex-end;
   padding: 30px;
+}
+
+.buttons:empty {
+  pointer-events: none;
 }
 
 .buttons button {
@@ -64,6 +69,34 @@
 
 .state p {
   font-size: 1.2rem;
+}
+
+.providers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.provider {
+  all: unset;
+  border: 1px solid #444;
+  padding: 8px 16px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.provider[data-selected='true'] {
+  border-color: #0064ff;
+}
+
+.setup {
+  animation: appearH 500ms ease;
+  margin-top: 10px;
+  flex: 1;
+  display: flex;
 }
 
 @keyframes appearH {

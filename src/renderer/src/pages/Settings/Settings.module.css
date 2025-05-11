@@ -291,3 +291,24 @@
   display: flex;
   padding: 8px;
 }
+
+.buttonSetting {
+  display: flex;
+  transition: 200ms ease;
+  align-items: center;
+}
+
+.buttonSetting[data-disabled='true'] {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.buttonSetting .description {
+  font-size: 14px;
+  color: #aaa;
+}
+
+.buttonSetting button {
+  display: flex;
+  padding: 8px;
+}

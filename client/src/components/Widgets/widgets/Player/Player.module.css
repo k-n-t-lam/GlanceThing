@@ -1,4 +1,4 @@
-.spotify {
+.player {
   flex: 1;
   padding: 16px;
   padding-top: 28px;
@@ -11,7 +11,7 @@
   overflow: hidden;
 }
 
-.spotify .cover {
+.player .cover {
   all: unset;
   position: relative;
   flex: 1;
@@ -19,12 +19,28 @@
   overflow: hidden;
 }
 
-.spotify .cover img {
-  border-radius: 20px;
+.player .cover .image {
+  height: 100%;
+  display: flex;
+}
+
+.player .cover .image img {
+  height: 100%;
+  width: 100%;
   transition: filter 200ms ease;
 }
 
-.spotify .cover .action {
+.player .cover .image span {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 80px;
+  background: #222;
+}
+
+.player .cover .action {
   position: absolute;
   top: 0;
   left: 0;
@@ -39,26 +55,26 @@
   background: rgba(0, 0, 0, 0.5);
 }
 
-.spotify .cover .action[data-shown='true'] {
+.player .cover .action[data-shown='true'] {
   opacity: 1;
 }
 
-.spotify .cover .action[data-shown='true'] ~ img {
+.player .cover .action[data-shown='true'] ~ img {
   filter: blur(5px);
 }
 
-.spotify .cover .action span {
+.player .cover .action span {
   position: absolute;
   font-size: 80px;
   opacity: 0;
   transition: opacity 500ms ease;
 }
 
-.spotify .cover .action span[data-shown='true'] {
+.player .cover .action span[data-shown='true'] {
   opacity: 1;
 }
 
-.spotify .name {
+.player .name {
   font-size: 1.2em;
   font-weight: bold;
   margin-top: 10px;
@@ -69,7 +85,7 @@
   -webkit-box-orient: vertical;
 }
 
-.spotify .artists {
+.player .artists {
   font-size: 0.8em;
   color: #aaa;
 }

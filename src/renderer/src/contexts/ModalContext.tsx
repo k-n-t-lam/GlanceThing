@@ -1,4 +1,5 @@
-import { createContext, useState } from 'react'
+import { createContext, useEffect, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 
 interface ModalContextType {
   settingsOpen: boolean
@@ -19,6 +20,7 @@ interface ModalContextProviderProps {
 }
 
 const ModalContextProvider = ({ children }: ModalContextProviderProps) => {
+  const location = useLocation()
   const [settingsOpen, _setSettingsOpen] = useState(false)
   const [shortcutsEditorOpen, _setShortcutsEditorOpen] = useState(false)
 
@@ -39,6 +41,13 @@ const ModalContextProvider = ({ children }: ModalContextProviderProps) => {
       _setShortcutsEditorOpen(false)
     }
   }
+
+  useEffect(() => {
+    if (settingsOpen || shortcutsEditorOpen) {
+      _setSettingsOpen(false)
+      _setShortcutsEditorOpen(false)
+    }
+  }, [location.pathname])
 
   return (
     <ModalContext.Provider

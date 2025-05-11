@@ -15,9 +15,10 @@ import { join } from 'path'
 import os from 'os'
 
 import {
+  getPlaybackHandlerConfig,
   getStorageValue,
   loadStorage,
-  setSpotifyDc,
+  setPlaybackHandlerConfig,
   setStorageValue
 } from './lib/storage.js'
 import { applyPatch, getPatches } from './lib/patches.js'
@@ -47,7 +48,7 @@ import {
 
 import icon from '../../resources/icon.png?asset'
 import trayIcon from '../../resources/tray.png?asset'
-import { getToken } from './lib/spotify.js'
+import { playbackManager } from './lib/playback/playback.js'
 
 let mainWindow: BrowserWindow | null = null
 
@@ -189,11 +190,14 @@ enum IPCHandler {
   RemoveShortcut = 'removeShortcut',
   UpdateShortcut = 'updateShortcut',
   IsDevMode = 'isDevMode',
-  SetSpotifyToken = 'setSpotifyToken',
   GetBrightness = 'getBrightness',
   SetBrightness = 'setBrightness',
   GetPatches = 'getPatches',
-  ApplyPatch = 'applyPatch'
+  ApplyPatch = 'applyPatch',
+  ValidateConfig = 'validateConfig',
+  GetPlaybackHandlerConfig = 'getPlaybackHandlerConfig',
+  SetPlaybackHandlerConfig = 'setPlaybackHandlerConfig',
+  RestartPlaybackHandler = 'restartPlaybackHandler'
 }
 
 async function setupIpcHandlers() {
@@ -330,17 +334,6 @@ async function setupIpcHandlers() {
     return isDev()
   })
 
-  ipcMain.handle(IPCHandler.SetSpotifyToken, async (_event, token) => {
-    const accessToken = await getToken(token).catch(() => null)
-
-    if (accessToken) {
-      setSpotifyDc(token)
-      return true
-    } else {
-      return false
-    }
-  })
-
   ipcMain.handle(IPCHandler.GetBrightness, async () => {
     return await getBrightness(null)
   })
@@ -355,6 +348,35 @@ async function setupIpcHandlers() {
 
   ipcMain.handle(IPCHandler.ApplyPatch, async (_event, patch) => {
     return await applyPatch(patch)
+  })
+
+  ipcMain.handle(
+    IPCHandler.ValidateConfig,
+    async (_event, handlerName, config) => {
+      const valid = playbackManager.validateConfig(handlerName, config)
+      return valid
+    }
+  )
+
+  ipcMain.handle(
+    IPCHandler.GetPlaybackHandlerConfig,
+    (_event, handlerName) => {
+      return getPlaybackHandlerConfig(handlerName)
+    }
+  )
+
+  ipcMain.handle(
+    IPCHandler.SetPlaybackHandlerConfig,
+    (_event, handlerName, config) => {
+      return setPlaybackHandlerConfig(handlerName, config)
+    }
+  )
+
+  ipcMain.handle(IPCHandler.RestartPlaybackHandler, async () => {
+    const playbackHandler = getStorageValue('playbackHandler')
+    if (!playbackHandler) return
+
+    playbackManager.setup(playbackHandler)
   })
 }
 

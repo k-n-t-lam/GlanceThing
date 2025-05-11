@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 
 import Controls from './widgets/Controls/Controls.tsx'
-import Spotify from './widgets/Spotify/Spotify.tsx'
+import Player from './widgets/Player/Player.tsx'
 import Apps from './widgets/Apps/Apps.tsx'
 
 import styles from './Widgets.module.css'
@@ -34,7 +34,7 @@ const Widgets: React.FC = () => {
 
   return (
     <div className={styles.widgets} ref={widgetsRef}>
-      <Spotify />
+      <Player />
       <div className={styles.column}>
         <Apps />
         <Controls />

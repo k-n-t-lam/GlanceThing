@@ -7,31 +7,24 @@ import {
   WheelEvent
 } from 'react'
 
-import { FilteredSpotifyCurrentPlayingResponse } from '@/types/spotify'
-import { formatTime, getClosestImage } from '@/lib/utils.ts'
+import { formatTime } from '@/lib/utils.ts'
 
 import BaseWidget from '../BaseWidget/BaseWidget.tsx'
 
-import { SocketContext } from '@/contexts/SocketContext.tsx'
+import styles from './Player.module.css'
+import { MediaContext } from '@/contexts/MediaContext.tsx'
 
-import styles from './Spotify.module.css'
+const Player: React.FC = () => {
+  const { actions, playerData, playerDataRef, image } =
+    useContext(MediaContext)
 
-const Spotify: React.FC = () => {
-  const { ready, socket } = useContext(SocketContext)
-
-  const spotifyRef = useRef<HTMLDivElement>(null)
-
-  const [playerData, setPlayerData] =
-    useState<FilteredSpotifyCurrentPlayingResponse | null>(null)
-  const playerDataRef = useRef(playerData)
+  const playerRef = useRef<HTMLDivElement>(null)
+  const imageDivRef = useRef<HTMLDivElement>(null)
 
   const [volume, setVolume] = useState(0)
   const volumeRef = useRef(volume)
   const lastVolumeChange = useRef(0)
   const [volumeAdjusted, setVolumeAdjusted] = useState(false)
-
-  const [image, setImage] = useState('')
-  const imageRef = useRef(image)
 
   const coverClicks = useRef(0)
   const coverClickTimer = useRef<ReturnType<typeof setTimeout> | null>(
@@ -42,38 +35,16 @@ const Spotify: React.FC = () => {
     'play' | 'pause' | 'forward' | 'back' | null
   >(null)
 
-  function playPause() {
-    if (playerDataRef.current === null) return
-
-    socket?.send(
-      JSON.stringify({
-        type: 'spotify',
-        action: playerDataRef.current?.playing ? 'pause' : 'play'
-      })
-    )
-    setPlayerData({
-      ...playerDataRef.current!,
-      playing: !playerDataRef.current?.playing
-    })
-  }
-
   function volumeUp() {
     if (playerDataRef.current === null) return
+    if (!playerDataRef.current.supportedActions.includes('volume')) return
 
     const volume = volumeRef.current
 
     if (volume < 100) {
       const newVolume = Math.min(volume + 10, 100)
 
-      socket?.send(
-        JSON.stringify({
-          type: 'spotify',
-          action: 'volume',
-          data: {
-            amount: newVolume
-          }
-        })
-      )
+      actions.setVolume(newVolume)
       setVolume(newVolume)
       volumeRef.current = newVolume
       lastVolumeChange.current = Date.now()
@@ -82,20 +53,13 @@ const Spotify: React.FC = () => {
 
   function volumeDown() {
     if (playerDataRef.current === null) return
+    if (!playerDataRef.current.supportedActions.includes('volume')) return
 
     const volume = volumeRef.current
 
     if (volume > 0) {
       const newVolume = Math.max(volume - 10, 0)
-      socket?.send(
-        JSON.stringify({
-          type: 'spotify',
-          action: 'volume',
-          data: {
-            amount: newVolume
-          }
-        })
-      )
+      actions.setVolume(newVolume)
 
       setVolume(newVolume)
       volumeRef.current = newVolume
@@ -103,31 +67,9 @@ const Spotify: React.FC = () => {
     }
   }
 
-  function skipForward() {
-    if (playerDataRef.current === null) return
-
-    socket?.send(
-      JSON.stringify({
-        type: 'spotify',
-        action: 'next'
-      })
-    )
-  }
-
-  function skipBackward() {
-    if (playerDataRef.current === null) return
-
-    socket?.send(
-      JSON.stringify({
-        type: 'spotify',
-        action: 'previous'
-      })
-    )
-  }
-
   function onKeyDown(e: KeyboardEvent<HTMLDivElement>) {
     if (e.key === 'Enter') {
-      playPause()
+      actions.playPause()
     } else if (e.key === 'ArrowLeft') {
       onWheel({ deltaX: -1 } as WheelEvent<HTMLDivElement>)
     } else if (e.key === 'ArrowRight') {
@@ -151,14 +93,14 @@ const Spotify: React.FC = () => {
 
     coverClickTimer.current = setTimeout(() => {
       if (coverClicks.current === 1) {
-        setCoverAction(playerDataRef.current?.playing ? 'pause' : 'play')
-        playPause()
+        setCoverAction(playerDataRef.current!.isPlaying ? 'pause' : 'play')
+        actions.playPause()
       } else if (coverClicks.current === 2) {
         setCoverAction('forward')
-        skipForward()
+        actions.skipForward()
       } else if (coverClicks.current === 3) {
         setCoverAction('back')
-        skipBackward()
+        actions.skipBackward()
       }
 
       coverClicks.current = 0
@@ -178,27 +120,6 @@ const Spotify: React.FC = () => {
   }, [coverAction])
 
   useEffect(() => {
-    if (!playerData?.playing) return
-    const interval = setInterval(() => {
-      setPlayerData(p => ({
-        ...p!,
-        duration: {
-          ...p!.duration,
-          current: p!.duration.current + 200
-        }
-      }))
-    }, 200)
-
-    return () => {
-      clearInterval(interval)
-    }
-  }, [playerData])
-
-  useEffect(() => {
-    playerDataRef.current = playerData
-  }, [playerData])
-
-  useEffect(() => {
     setVolumeAdjusted(true)
     const timer = setTimeout(() => {
       setVolumeAdjusted(false)
@@ -210,54 +131,22 @@ const Spotify: React.FC = () => {
   }, [volume])
 
   useEffect(() => {
-    if (ready === true && socket) {
-      const listener = (e: MessageEvent) => {
-        const { type, action, data } = JSON.parse(e.data)
-        if (type !== 'spotify') return
-
-        if (action === 'image') {
-          if (!data) return
-          setImage(data)
-        } else {
-          if (!data) return
-
-          if (data.session == false) {
-            return setPlayerData(null)
-          }
-          setPlayerData(data)
-
-          if (lastVolumeChange.current < Date.now() - 1000) {
-            setVolume(data.device.volume_percent)
-            volumeRef.current = data.device.volume_percent
-          }
-
-          const img = getClosestImage(data.covers, 120)
-          const id = img.url.split('/').pop()!
-          if (imageRef.current !== id) {
-            imageRef.current = id
-            socket.send(
-              JSON.stringify({
-                type: 'spotify',
-                action: 'image',
-                data: { id }
-              })
-            )
-          }
-        }
+    if (playerData) {
+      if (lastVolumeChange.current < Date.now() - 1000) {
+        setVolume(playerData.volume)
+        volumeRef.current = playerData.volume
       }
-      socket.addEventListener('message', listener)
 
-      socket.send(JSON.stringify({ type: 'spotify' }))
+      const height = imageDivRef.current!.parentElement!.clientHeight
 
-      return () => {
-        socket.removeEventListener('message', listener)
-      }
+      imageDivRef.current!.style.width = `${height}px`
+      imageDivRef.current!.style.height = `${height}px`
     }
-  }, [ready, socket])
+  }, [playerData])
 
   useEffect(() => {
     const listener = (e: globalThis.WheelEvent) => {
-      if (spotifyRef.current!.matches(':focus-within')) {
+      if (playerRef.current!.matches(':focus-within')) {
         e.preventDefault()
         onWheel({
           deltaX: e.deltaX
@@ -276,9 +165,9 @@ const Spotify: React.FC = () => {
 
   return (
     <BaseWidget
-      className={styles.spotify}
+      className={styles.player}
       onKeyDown={onKeyDown}
-      ref={spotifyRef}
+      ref={playerRef}
     >
       {playerData ? (
         <>
@@ -312,47 +201,48 @@ const Spotify: React.FC = () => {
                 skip_previous
               </span>
             </div>
-            <img
-              src={image}
-              onLoad={e =>
-                (e.currentTarget.style.width = `${e.currentTarget.parentElement!.clientHeight}px`)
-              }
-            />
+            <div className={styles.image} ref={imageDivRef}>
+              {image ? (
+                <img src={image} />
+              ) : (
+                <span className="material-icons">music_note</span>
+              )}
+            </div>
           </button>
-          <span className={styles.name}>{playerData.name}</span>
+          <span className={styles.name}>{playerData.track.name}</span>
           <span className={styles.artists}>
-            {playerData.artists.map(artist => artist.name).join(', ')}
+            {playerData.track.artists.join(', ')}
           </span>
           <div className={styles.controls}>
-            <button onMouseDown={skipBackward}>
+            <button onMouseDown={actions.skipBackward}>
               <span className="material-icons">skip_previous</span>
             </button>
-            <button onMouseDown={playPause}>
+            <button onMouseDown={actions.playPause}>
               <span className="material-icons">
-                {playerData.playing ? 'pause' : 'play_arrow'}
+                {playerData.isPlaying ? 'pause' : 'play_arrow'}
               </span>
             </button>
-            <button onMouseDown={skipForward}>
+            <button onMouseDown={actions.skipForward}>
               <span className="material-icons">skip_next</span>
             </button>
           </div>
           <div className={styles.progress}>
-            <p>{formatTime(playerData.duration.current)}</p>
+            <p>{formatTime(playerData.track.duration.current)}</p>
             <div className={styles.slider}>
               <div
                 className={styles.fill}
                 style={{
                   width: `${
-                    (playerData.duration.current /
-                      playerData.duration.total) *
+                    (playerData.track.duration.current /
+                      playerData.track.duration.total) *
                     100
                   }%`
                 }}
               ></div>
             </div>
-            <p>{formatTime(playerData.duration.total)}</p>
+            <p>{formatTime(playerData.track.duration.total)}</p>
           </div>
-          {playerData.device.supports_volume && (
+          {playerData.supportedActions.includes('volume') && (
             <div className={styles.volume} data-shown={volumeAdjusted}>
               <button onMouseDown={volumeDown}>
                 <span className="material-icons"> volume_down </span>
@@ -374,7 +264,7 @@ const Spotify: React.FC = () => {
           <span className="material-icons">music_note</span>
           <p className={styles.title}>Nothing playing!</p>
           <p className={styles.note}>
-            Open Spotify on your computer and start playing something.
+            Start playing something on your computer.
           </p>
         </div>
       )}
@@ -382,4 +272,4 @@ const Spotify: React.FC = () => {
   )
 }
 
-export default Spotify
+export default Player

@@ -4,9 +4,9 @@ import {
 } from '../../types/WebSocketSetup.js'
 
 import * as time from './time.js'
-import * as spotify from './spotify.js'
+import * as playback from './playback.js'
 
-const setupHandlers: SetupHandler[] = [time, spotify]
+const setupHandlers: SetupHandler[] = [time, playback]
 
 export async function runServerSetup() {
   const cleanupFunctions: CleanupFunction[] = []

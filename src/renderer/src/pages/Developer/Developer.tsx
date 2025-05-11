@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 import styles from './Developer.module.css'
 
@@ -11,6 +11,7 @@ enum CarThingState {
 }
 
 const Developer: React.FC = () => {
+  const navigate = useNavigate()
   const [serverStarted, setServerStarted] = useState(false)
 
   const [carThingState, setCarThingState] = useState<CarThingState | null>(
@@ -76,6 +77,9 @@ const Developer: React.FC = () => {
           </button>
         )}
       </div>
+
+      <h2>Links</h2>
+      <button onClick={() => navigate('/setup?step=3')}>Setup</button>
     </div>
   )
 }

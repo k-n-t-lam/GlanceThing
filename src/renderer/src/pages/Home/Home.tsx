@@ -18,6 +18,7 @@ const Home: React.FC = () => {
     null
   )
   const carThingStateRef = useRef(carThingState)
+  const [needsPlaybackSetup, setNeedsPlaybackSetup] = useState(false)
 
   useEffect(() => {
     window.api.getStorageValue('setupComplete').then(setupComplete => {
@@ -36,6 +37,10 @@ const Home: React.FC = () => {
 
       window.api.triggerCarThingStateUpdate()
     }, 200)
+
+    window.api.getStorageValue('playbackHandler').then(handler => {
+      if (handler === null) setNeedsPlaybackSetup(true)
+    })
 
     return () => {
       removeListener()
@@ -75,6 +80,14 @@ const Home: React.FC = () => {
           <p>Checking for CarThing...</p>
         )}
       </div>
+      {needsPlaybackSetup && carThingState === CarThingState.Ready ? (
+        <div className={styles.setup}>
+          <p>You have not set up a playback handler yet!</p>
+          <button onClick={() => navigate('/setup?step=3')}>
+            Set up now
+          </button>
+        </div>
+      ) : null}
     </div>
   )
 }

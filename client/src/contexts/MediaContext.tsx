@@ -6,30 +6,33 @@ import React, {
   useState
 } from 'react'
 
-import { getClosestImage } from '@/lib/utils.ts'
 import { SocketContext } from './SocketContext.tsx'
 
-import { FilteredSpotifyCurrentPlayingResponse } from '@/types/spotify.js'
+import { PlaybackData, RepeatMode } from '@/types/Playback.js'
 
 interface MediaContextProps {
   image: string
-  playerData: FilteredSpotifyCurrentPlayingResponse | null
+  playerData: PlaybackData | null
+  playerDataRef: React.MutableRefObject<PlaybackData | null>
   actions: {
     playPause: () => void
     skipForward: () => void
     skipBackward: () => void
+    setVolume: (volume: number) => void
     shuffle: (state: boolean) => void
-    repeat: (state: 'off' | 'context' | 'track') => void
+    repeat: (state: RepeatMode) => void
   }
 }
 
 const MediaContext = createContext<MediaContextProps>({
   image: '',
   playerData: null,
+  playerDataRef: { current: null },
   actions: {
     playPause: () => {},
     skipForward: () => {},
     skipBackward: () => {},
+    setVolume: () => {},
     shuffle: () => {},
     repeat: () => {}
   }
@@ -41,46 +44,37 @@ interface MediaContextProviderProps {
 
 const MediaContextProvider = ({ children }: MediaContextProviderProps) => {
   const { ready, socket } = useContext(SocketContext)
+
+  const [playerData, setPlayerData] = useState<PlaybackData | null>(null)
+  const playerDataRef = useRef<PlaybackData | null>(null)
   const [image, setImage] = useState('')
-  const imageRef = useRef('')
-  const [playerData, setPlayerData] =
-    useState<FilteredSpotifyCurrentPlayingResponse | null>(null)
-  const playerDataRef =
-    useRef<FilteredSpotifyCurrentPlayingResponse | null>(null)
 
   useEffect(() => {
     if (ready === true && socket) {
       const listener = (e: MessageEvent) => {
         const { type, action, data } = JSON.parse(e.data)
-        if (type !== 'spotify') return
+        if (type !== 'playback') return
+        const playbackData = data as PlaybackData
 
         if (action === 'image') {
-          if (!data) return
-          setImage(data)
+          setImage(`data:image/png;base64,${data}`)
         } else {
-          if (!data) return
+          if (!data) return setPlayerData(null)
+          setPlayerData(playbackData)
 
-          if (data.session == false) return setPlayerData(null)
-
-          setPlayerData(data)
-
-          const img = getClosestImage(data.covers, 120)
-          const id = img.url.split('/').pop()!
-          if (imageRef.current !== id) {
-            imageRef.current = id
+          if (
+            playerDataRef.current?.track.name !== playbackData.track.name
+          ) {
             socket.send(
-              JSON.stringify({
-                type: 'spotify',
-                action: 'image',
-                data: { id }
-              })
+              JSON.stringify({ type: 'playback', action: 'image' })
             )
           }
         }
       }
+
       socket.addEventListener('message', listener)
 
-      socket.send(JSON.stringify({ type: 'spotify' }))
+      socket.send(JSON.stringify({ type: 'playback' }))
 
       return () => {
         socket.removeEventListener('message', listener)
@@ -89,14 +83,17 @@ const MediaContextProvider = ({ children }: MediaContextProviderProps) => {
   }, [ready, socket])
 
   useEffect(() => {
-    if (!playerData?.playing) return
+    if (!playerData?.isPlaying) return
 
     const interval = setInterval(() => {
       setPlayerData(p => ({
         ...p!,
-        duration: {
-          ...p!.duration,
-          current: p!.duration.current + 200
+        track: {
+          ...p!.track,
+          duration: {
+            ...p!.track.duration,
+            current: p!.track.duration.current + 200
+          }
         }
       }))
     }, 200)
@@ -116,13 +113,13 @@ const MediaContextProvider = ({ children }: MediaContextProviderProps) => {
 
       socket?.send(
         JSON.stringify({
-          type: 'spotify',
-          action: playerDataRef.current?.playing ? 'pause' : 'play'
+          type: 'playback',
+          action: playerDataRef.current?.isPlaying ? 'pause' : 'play'
         })
       )
       setPlayerData({
         ...playerDataRef.current!,
-        playing: !playerDataRef.current?.playing
+        isPlaying: !playerDataRef.current?.isPlaying
       })
     },
     skipForward: () => {
@@ -130,7 +127,7 @@ const MediaContextProvider = ({ children }: MediaContextProviderProps) => {
 
       socket?.send(
         JSON.stringify({
-          type: 'spotify',
+          type: 'playback',
           action: 'next'
         })
       )
@@ -140,16 +137,34 @@ const MediaContextProvider = ({ children }: MediaContextProviderProps) => {
 
       socket?.send(
         JSON.stringify({
-          type: 'spotify',
+          type: 'playback',
           action: 'previous'
         })
       )
+    },
+    setVolume: (volume: number) => {
+      if (playerDataRef.current === null) return
+
+      socket?.send(
+        JSON.stringify({
+          type: 'playback',
+          action: 'volume',
+          data: {
+            volume
+          }
+        })
+      )
+
+      setPlayerData({
+        ...playerDataRef.current!,
+        volume: volume
+      })
     },
     shuffle: (state: boolean) => {
       if (playerDataRef.current === null) return
       socket?.send(
         JSON.stringify({
-          type: 'spotify',
+          type: 'playback',
           action: 'shuffle',
           data: {
             state
@@ -159,15 +174,15 @@ const MediaContextProvider = ({ children }: MediaContextProviderProps) => {
 
       setPlayerData({
         ...playerDataRef.current!,
-        shuffle_state: state
+        shuffle: state
       })
     },
-    repeat: (state: 'off' | 'context' | 'track') => {
+    repeat: (state: RepeatMode) => {
       if (playerDataRef.current === null) return
 
       socket?.send(
         JSON.stringify({
-          type: 'spotify',
+          type: 'playback',
           action: 'repeat',
           data: {
             state
@@ -177,7 +192,7 @@ const MediaContextProvider = ({ children }: MediaContextProviderProps) => {
 
       setPlayerData({
         ...playerDataRef.current!,
-        repeat_state: state
+        repeat: state as RepeatMode
       })
     }
   }
@@ -187,6 +202,7 @@ const MediaContextProvider = ({ children }: MediaContextProviderProps) => {
       value={{
         image,
         playerData,
+        playerDataRef,
         actions
       }}
     >

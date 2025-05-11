@@ -120,10 +120,19 @@ export function getSocketPassword() {
   return socketPassword
 }
 
-export function getSpotifyDc() {
-  return getStorageValue('sp_dc', true)
+export function getPlaybackHandlerConfig(handler: string) {
+  const config = getStorageValue(`playbackConfig.${handler}`, true)
+  if (config) return JSON.parse(Buffer.from(config, 'base64').toString())
+  return null
 }
 
-export function setSpotifyDc(dc: string) {
-  return setStorageValue('sp_dc', dc, true)
+export function setPlaybackHandlerConfig(
+  handler: string,
+  config: unknown
+) {
+  setStorageValue(
+    `playbackConfig.${handler}`,
+    Buffer.from(JSON.stringify(config)).toString('base64'),
+    true
+  )
 }

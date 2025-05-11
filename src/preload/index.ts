@@ -26,11 +26,14 @@ enum IPCHandler {
   RemoveShortcut = 'removeShortcut',
   UpdateShortcut = 'updateShortcut',
   IsDevMode = 'isDevMode',
-  SetSpotifyToken = 'setSpotifyToken',
   GetBrightness = 'getBrightness',
   SetBrightness = 'setBrightness',
   GetPatches = 'getPatches',
-  ApplyPatch = 'applyPatch'
+  ApplyPatch = 'applyPatch',
+  ValidateConfig = 'validateConfig',
+  GetPlaybackHandlerConfig = 'getPlaybackHandlerConfig',
+  SetPlaybackHandlerConfig = 'setPlaybackHandlerConfig',
+  RestartPlaybackHandler = 'restartPlaybackHandler'
 }
 
 // Custom APIs for renderer
@@ -69,14 +72,24 @@ const api = {
   updateShortcut: (shortcut: Shortcut) =>
     ipcRenderer.invoke(IPCHandler.UpdateShortcut, shortcut),
   isDevMode: () => ipcRenderer.invoke(IPCHandler.IsDevMode),
-  setSpotifyToken: (token: string) =>
-    ipcRenderer.invoke(IPCHandler.SetSpotifyToken, token),
   getBrightness: () => ipcRenderer.invoke(IPCHandler.GetBrightness),
   setBrightness: (brightness: number) =>
     ipcRenderer.invoke(IPCHandler.SetBrightness, brightness),
   getPatches: () => ipcRenderer.invoke(IPCHandler.GetPatches),
   applyPatch: (patchName: string) =>
-    ipcRenderer.invoke(IPCHandler.ApplyPatch, patchName)
+    ipcRenderer.invoke(IPCHandler.ApplyPatch, patchName),
+  validateConfig: (handlerName: string, config: unknown) =>
+    ipcRenderer.invoke(IPCHandler.ValidateConfig, handlerName, config),
+  getPlaybackHandlerConfig: (handlerName: string) =>
+    ipcRenderer.invoke(IPCHandler.GetPlaybackHandlerConfig, handlerName),
+  setPlaybackHandlerConfig: (handlerName: string, config: unknown) =>
+    ipcRenderer.invoke(
+      IPCHandler.SetPlaybackHandlerConfig,
+      handlerName,
+      config
+    ),
+  restartPlaybackHandler: () =>
+    ipcRenderer.invoke(IPCHandler.RestartPlaybackHandler)
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

@@ -9,6 +9,7 @@ import Switch from '@/components/Switch/Switch.js'
 import styles from './Settings.module.css'
 
 import icon from '@/assets/icon.png'
+import { useNavigate } from 'react-router-dom'
 
 enum Tab {
   General,
@@ -142,46 +143,20 @@ const ToggleSetting: React.FC<{
   )
 }
 
-const InputWithSubmitSetting: React.FC<{
+const ButtonSetting: React.FC<{
   label: string
   description?: string
-  defaultValue?: string
-  value?: string
-  submitLabel?: string
-  onSubmit: (value: string) => void
-  password?: boolean
-  disabled?: boolean
-}> = ({
-  label,
-  description,
-  defaultValue,
-  submitLabel,
-  onSubmit,
-  password,
-  disabled
-}) => {
-  const value = useRef('')
-
+  onClick: () => void
+}> = ({ label, description, onClick }) => {
   return (
-    <div className={styles.inputWithSubmitSetting}>
+    <div className={styles.buttonSetting}>
       <div className={styles.text}>
         <p className={styles.label}>{label}</p>
         <p className={styles.description}>{description}</p>
       </div>
-      <div className={styles.form}>
-        <input
-          type={password ? 'password' : 'text'}
-          defaultValue={defaultValue}
-          disabled={disabled}
-          onChange={e => (value.current = e.target.value)}
-        />
-        <button
-          disabled={disabled}
-          onClick={() => onSubmit(value.current || '')}
-        >
-          {submitLabel || 'Submit'}
-        </button>
-      </div>
+      <button onClick={onClick}>
+        <span className="material-icons">arrow_forward</span>
+      </button>
     </div>
   )
 }
@@ -264,22 +239,12 @@ const SliderSetting: React.FC<{
   )
 }
 
-enum SpotifyStatus {
-  Loading,
-  Pending,
-  Valid,
-  Invalid
-}
-
 const GeneralTab: React.FC = () => {
+  const navigate = useNavigate()
   const [loaded, setLoaded] = useState(false)
-  const [spotifyStatus, setSpotifyStatus] = useState<SpotifyStatus>(
-    SpotifyStatus.Pending
-  )
 
   const settings = useRef<{
     installAutomatically?: boolean
-    sp_dc?: string
   }>({})
 
   useEffect(() => {
@@ -295,18 +260,6 @@ const GeneralTab: React.FC = () => {
     loadSettings()
   }, [])
 
-  async function handleSpotifyTokenChange(token: string) {
-    setSpotifyStatus(SpotifyStatus.Loading)
-    if (!token) return setSpotifyStatus(SpotifyStatus.Invalid)
-    const res = await window.api.setSpotifyToken(token)
-
-    if (res === false) {
-      setSpotifyStatus(SpotifyStatus.Invalid)
-    } else {
-      setSpotifyStatus(SpotifyStatus.Valid)
-    }
-  }
-
   return (
     loaded && (
       <div className={styles.settingsTab}>
@@ -318,20 +271,11 @@ const GeneralTab: React.FC = () => {
             window.api.setStorageValue('installAutomatically', value)
           }
         />
-        <InputWithSubmitSetting
-          label="Spotify Token"
-          description="Used for live fetching of Spotify playback status"
-          password
-          defaultValue=""
-          disabled={spotifyStatus === SpotifyStatus.Loading}
-          onSubmit={handleSpotifyTokenChange}
-          submitLabel="Change"
+        <ButtonSetting
+          label="Playback Setup"
+          description="Run the playback setup again to change how playback is handled."
+          onClick={() => navigate('/setup?step=3')}
         />
-        {spotifyStatus === SpotifyStatus.Invalid ? (
-          <p className={styles.error}>Invalid Spotify token</p>
-        ) : spotifyStatus === SpotifyStatus.Valid ? (
-          <p className={styles.success}>Token saved!</p>
-        ) : null}
       </div>
     )
   )
