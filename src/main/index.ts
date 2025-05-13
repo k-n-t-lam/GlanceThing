@@ -62,6 +62,7 @@ import {
   importCustomWebApp,
   removeCustomWebApp
 } from './lib/webapp.js'
+import { setupSpotifyOAuth } from './lib/playback/spotify.js'
 
 let mainWindow: BrowserWindow | null = null
 
@@ -116,7 +117,15 @@ function createWindow(): void {
   }
 }
 
-app.on('second-instance', () => {
+app.on('second-instance', (event, commandLine) => {
+  if (commandLine.length > 1) {
+    const url = commandLine.find(arg => arg.startsWith('glancething://'))
+    if (url) {
+      event.preventDefault()
+      handleSpotifyCallback(url)
+    }
+  }
+
   if (mainWindow) {
     mainWindow.focus()
   } else {
@@ -124,7 +133,46 @@ app.on('second-instance', () => {
   }
 })
 
+app.on('open-url', (event, url) => {
+  event.preventDefault()
+  handleSpotifyCallback(url)
+})
+
+async function handleSpotifyCallback(url: string) {
+  try {
+    const match = url?.match(/[?&]code=([^&]+)/)
+    if (!match) {
+      log('No code found in protocol callback URL', 'Spotify callback', LogLevel.ERROR)
+      return
+    }
+    
+    const code = decodeURIComponent(match[1])
+    app.emit('spotify-oauth-callback', null, code)
+  } catch (err) {
+    log(`Error handling Spotify callback: ${err}`, 'Spotify callback', LogLevel.ERROR)
+  }
+}
+
+// Handle protocol links on Windows/Linux
+if (process.argv.length > 1) {
+  const url = process.argv.find(arg => arg.startsWith('glancething://'))
+  if (url) {
+    app.on('ready', () => {
+      setTimeout(() => {
+        handleSpotifyCallback(url)
+      }, 1000)
+    })
+  }
+}
+
 app.on('ready', async () => {
+  if (process.platform === 'win32') {
+    app.setAsDefaultProtocolClient('glancething')
+  } else {
+    app.setAsDefaultProtocolClient('glancething', process.execPath, [
+      process.argv.slice(1).join(' ')
+    ])
+  }
   log('Welcome!', 'GlanceThing')
 
   const gotLock = app.requestSingleInstanceLock()
@@ -172,6 +220,14 @@ app.on('ready', async () => {
   else app.dock?.hide()
 })
 
+if (process.defaultApp || process.env.NODE_ENV === 'development') {
+  app.setAsDefaultProtocolClient('glancething', process.execPath, [
+    join(process.argv[1])
+  ])
+} else {
+  app.setAsDefaultProtocolClient('glancething')
+}
+
 app.on('browser-window-created', (_, window) => {
   optimizer.watchWindowShortcuts(window)
 })
@@ -216,7 +272,8 @@ enum IPCHandler {
   RemoveCustomClient = 'removeCustomClient',
   GetLogs = 'getLogs',
   ClearLogs = 'clearLogs',
-  DownloadLogs = 'downloadLogs'
+  DownloadLogs = 'downloadLogs',
+  SetupSpotifyOAuth = 'setupSpotifyOAuth'
 }
 
 async function setupIpcHandlers() {
@@ -425,6 +482,10 @@ async function setupIpcHandlers() {
 
   ipcMain.handle(IPCHandler.DownloadLogs, async () => {
     await downloadLogs()
+  })
+
+  ipcMain.handle(IPCHandler.SetupSpotifyOAuth, async (_event, clientId, clientSecret) => {
+    return await setupSpotifyOAuth(clientId, clientSecret)
   })
 }
 

@@ -54,6 +54,7 @@ declare global {
       getLogs: () => Promise<string[]>
       clearLogs: () => Promise<void>
       downloadLogs: () => Promise<void>
+      setupSpotifyOAuth: (clientId: string, clientSecret: string) => Promise<string>
     }
   }
 }

@@ -40,6 +40,7 @@ enum IPCHandler {
   GetLogs = 'getLogs',
   ClearLogs = 'clearLogs',
   DownloadLogs = 'downloadLogs'
+  SetupSpotifyOAuth = 'setupSpotifyOAuth'
 }
 
 // Custom APIs for renderer
@@ -103,7 +104,13 @@ const api = {
     ipcRenderer.invoke(IPCHandler.RemoveCustomClient),
   getLogs: () => ipcRenderer.invoke(IPCHandler.GetLogs),
   clearLogs: () => ipcRenderer.invoke(IPCHandler.ClearLogs),
-  downloadLogs: () => ipcRenderer.invoke(IPCHandler.DownloadLogs)
+  downloadLogs: () => ipcRenderer.invoke(IPCHandler.DownloadLogs),
+  setupSpotifyOAuth: (clientId:string, clientSecret: string) => 
+    ipcRenderer.invoke(
+      IPCHandler.SetupSpotifyOAuth, 
+      clientId, 
+      clientSecret
+    ),
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

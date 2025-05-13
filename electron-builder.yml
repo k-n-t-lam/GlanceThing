@@ -13,6 +13,10 @@ asarUnpack:
   - resources/**
 win:
   executableName: GlanceThing
+  protocols:
+    - name: GlanceThing Protocol
+      schemes:
+        - glancething
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}

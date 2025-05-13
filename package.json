@@ -17,6 +17,27 @@
     "build:mac": "electron-vite build && electron-builder --mac",
     "build:linux": "electron-vite build && electron-builder --linux"
   },
+  "build": {
+    "protocols": [
+      {
+        "name": "GlanceThing",
+        "schemes": [ "glancething" ]
+      }
+    ],
+    "mac": {
+      "category": "public.app-category.utilities",
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist"
+    },
+    "win": {
+      "fileAssociations": []
+    },
+    "linux": {
+      "desktop": {
+        "MimeType": "x-scheme-handler/glancething"
+      }
+    }
+  },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.1",
     "@electron-toolkit/utils": "^3.0.0",

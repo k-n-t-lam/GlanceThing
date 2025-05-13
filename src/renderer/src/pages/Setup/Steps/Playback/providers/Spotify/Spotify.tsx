@@ -81,35 +81,83 @@ const SpotifyAPISetup: React.FC<SpotifyAPISetupProps> = ({
   onStepComplete
 }) => {
   const [state, setState] = useState<SpotifyAPISetupState>(0)
-  const [error, setError] = useState<string>('')
+  const [error, setError] = useState('')
+  const [clientId, setClientId] = useState('')
+  const [clientSecret, setClientSecret] = useState('')
+  const [refreshToken, setRefreshToken] = useState('')
+  const [isAuthorizing, setIsAuthorizing] = useState(false)
+
   const idRef = useRef<HTMLInputElement | null>(null)
   const secretRef = useRef<HTMLInputElement | null>(null)
   const tokenRef = useRef<HTMLInputElement | null>(null)
 
+  async function startOAuth() {
+    setError('')
+    setIsAuthorizing(true)
+
+    if (!clientId || !clientSecret) {
+      setError('ID and Secret required')
+      setIsAuthorizing(false)
+      return
+    }
+
+    try {
+      const token = await window.api.setupSpotifyOAuth(clientId, clientSecret)
+
+      if (!token) {
+        setError('No token received, please check your credentials')
+        setIsAuthorizing(false)
+        return
+      }
+
+      setRefreshToken(token)
+      if (tokenRef.current) tokenRef.current.value = token
+
+      setState(SpotifyAPISetupState.Pending)
+      setError('')
+    } catch (err: unknown) {
+      setError('OAuth failed')
+    }
+
+    setIsAuthorizing(false)
+  }
+
   async function check() {
-    const clientId = idRef.current!.value
-    const clientSecret = secretRef.current!.value
-    const refreshToken = tokenRef.current!.value
+    if (!clientId || !clientSecret || !refreshToken) {
+      setError('All fields required')
+      setState(SpotifyAPISetupState.Invalid)
+      return
+    }
 
     setError('')
     setState(SpotifyAPISetupState.Checking)
-    const valid = await window.api.validateConfig('spotify', {
-      clientId,
-      clientSecret,
-      refreshToken
-    })
-    if (valid) {
-      setState(SpotifyAPISetupState.Valid)
-    } else {
-      setError('Invalid credentials! Please try again.')
-      setState(SpotifyAPISetupState.Invalid)
+
+    try {
+      const valid = await window.api.validateConfig('spotify', {
+        clientId,
+        clientSecret,
+        refreshToken
+      })
+
+      if (valid) {
+        setState(SpotifyAPISetupState.Valid)
+      } else {
+        setError('Invalid credentials')
+        setState(SpotifyAPISetupState.Invalid)
+      }
+    } catch (err: unknown) {
+      setError('Validation failed')
+      setState(SpotifyAPISetupState.Error)
     }
   }
 
   function complete() {
-    const clientId = idRef.current!.value
-    const clientSecret = secretRef.current!.value
-    const refreshToken = tokenRef.current!.value
+    if (!clientId || !clientSecret || !refreshToken) {
+      setError('All fields required')
+      setState(SpotifyAPISetupState.Invalid)
+      return
+    }
+
     onStepComplete({ clientId, clientSecret, refreshToken })
   }
 
@@ -117,45 +165,56 @@ const SpotifyAPISetup: React.FC<SpotifyAPISetupProps> = ({
     <div className={styles.step}>
       <h2>Step 1: Spotify API Setup</h2>
       <p>
-        For controlling your Spotify playback on GlanceThing, you&apos;ll
-        need to set up a Spotify application.
+        GlanceThing required an Spotify Developer App authenticate your account and control playback via API.
       </p>
-      <p>
-        To do this, you can use{' '}
-        <a
-          href="https://spotirt.bludood.com/"
-          target="_blank"
-          rel="noreferrer"
-        >
-          SpotiRT
-        </a>{' '}
-        to easily generate a refresh token.
-      </p>
-      <p>
-        Make sure to select{' '}
-        <code>Read access to a user&apos;s player state</code> and{' '}
-        <code>Write access to a user&apos;s player state</code> as the
-        scope.
-      </p>
-
+      <ol>
+        <li>
+          <b>Create Spotify Developer App</b> at{' '}
+          <a href="https://developer.spotify.com/dashboard/applications" target="_blank" rel="noreferrer">Spotify Dashboard</a>
+          <ul>
+            <li>Create a new application and fill out a name and description. Check the box for use of the <code>Web API</code></li>
+            <li>Add <code>glancething://spotify</code> as Redirect URI</li>
+            <li>Copy Client ID and Secret below</li>
+          </ul>
+        </li>
+        <div className={styles.inputs}>
+          <input
+            type="text"
+            className={styles.input}
+            placeholder="Client ID"
+            ref={idRef}
+            value={clientId}
+            onChange={(e) => setClientId(e.target.value.trim())}
+          />
+          <input
+            type="password"
+            className={styles.input}
+            placeholder="Client Secret"
+            ref={secretRef}
+            value={clientSecret}
+            onChange={(e) => setClientSecret(e.target.value.trim())}
+          />
+        </div>
+        <li>
+          <b>Authorize with Spotify:</b>
+          <button
+            type="button"
+            onClick={startOAuth}
+            disabled={isAuthorizing || !clientId || !clientSecret}
+            className={styles.authBtn}
+          >
+            {isAuthorizing ? 'Authorizing...' : 'Get Token'}
+          </button>
+        </li>
+      </ol>
       <div className={styles.inputs}>
         <input
-          type="text"
+          type="hidden"
           className={styles.input}
-          placeholder="Client ID"
-          ref={idRef}
-        />
-        <input
-          type="password"
-          className={styles.input}
-          placeholder="Client Secret"
-          ref={secretRef}
-        />
-        <input
-          type="password"
-          className={styles.input}
-          placeholder="Refresh Token"
           ref={tokenRef}
+          value={refreshToken}
+          readOnly={true}
+          onChange={(e) => setRefreshToken(e.target.value.trim())}
         />
       </div>
       {state === SpotifyAPISetupState.Checking ? (
@@ -173,10 +232,22 @@ const SpotifyAPISetup: React.FC<SpotifyAPISetupProps> = ({
           <span className="material-icons" data-type="error">
             error
           </span>
-          <p>{error ?? 'Invalid token!'}</p>
+          <p>{error ?? 'Invalid credentials'}</p>
         </div>
       ) : state === SpotifyAPISetupState.Error ? (
         <div className={styles.state} data-small="true" key={'error'}>
+          <span className="material-icons" data-type="error">
+            error
+          </span>
+          <p>{error}</p>
+        </div>
+      ) : refreshToken ? (
+        <div className={styles.state} data-small="true" key={'token-received'}>
+          <span className="material-icons">info</span>
+          <p>Token received! Click Check to verify.</p>
+        </div>
+      ) : error ? (
+        <div className={styles.state} data-small="true" key={'oauth-error'}>
           <span className="material-icons" data-type="error">
             error
           </span>
@@ -189,7 +260,9 @@ const SpotifyAPISetup: React.FC<SpotifyAPISetupProps> = ({
           SpotifyAPISetupState.Error,
           SpotifyAPISetupState.Invalid
         ].includes(state) ? (
-          <button onClick={check}>Check</button>
+          <button onClick={check} disabled={state === SpotifyAPISetupState.Checking}>
+            Check
+          </button>
         ) : [SpotifyAPISetupState.Valid].includes(state) ? (
           <button onClick={complete}>Continue</button>
         ) : null}
@@ -212,45 +285,55 @@ enum TokenSetupState {
 
 const TokenSetup: React.FC<TokenSetupProps> = ({ onStepComplete }) => {
   const [state, setState] = useState<TokenSetupState>(0)
-  const [error, setError] = useState<string>('')
+  const [error, setError] = useState('')
+  const [spDcToken, setSpDcToken] = useState('')
   const inputRef = useRef<HTMLInputElement | null>(null)
 
   async function check() {
-    const token = inputRef.current!.value
+    const token = spDcToken.trim()
+
     setError('')
     setState(TokenSetupState.Checking)
-    await new Promise(r => setTimeout(r, 0))
+
     if (!validate(token)) return
-    const valid = await window.api.validateConfig('spotify', {
-      sp_dc: token
-    })
-    if (valid) {
-      setState(TokenSetupState.Valid)
-    } else {
-      setError('Invalid token! Please try again.')
-      setState(TokenSetupState.Invalid)
+
+    try {
+      const valid = await window.api.validateConfig('spotify', {
+        sp_dc: token
+      })
+
+      if (valid) {
+        setState(TokenSetupState.Valid)
+      } else {
+        setError('Invalid token')
+        setState(TokenSetupState.Invalid)
+      }
+    } catch (err: unknown) {
+      setError('Validation error')
+      setState(TokenSetupState.Error)
     }
   }
 
   function complete() {
-    const token = inputRef.current!.value
+    const token = spDcToken.trim()
+    if (!validate(token)) return
     onStepComplete({ sp_dc: token })
   }
 
   function validate(token: string) {
-    if (token.length === 0) {
+    if (!token || token.trim().length === 0) {
       setError('Token cannot be empty!')
       setState(TokenSetupState.Invalid)
       return false
-    } else if (
-      token.includes('sp_dc') ||
-      token.includes('"') ||
-      token.includes("'")
-    ) {
+    }
+
+    if (token.includes('sp_dc=') || token.includes('"') || token.includes("'")) {
       setError('Only paste the token here, without sp_dc or quotes!')
       setState(TokenSetupState.Invalid)
       return false
-    } else if (!/^[A-Za-z0-9-_]+$/.test(token)) {
+    }
+
+    if (!/^[A-Za-z0-9-_]+$/.test(token)) {
       setError('Invalid token format! Please check your input.')
       setState(TokenSetupState.Invalid)
       return false
@@ -262,20 +345,23 @@ const TokenSetup: React.FC<TokenSetupProps> = ({ onStepComplete }) => {
     <div className={styles.step}>
       <h2>Step 2: Spotify Web Token Setup</h2>
       <p>
-        To enable realtime playback updates, GlanceThing needs an extra
-        token you can get from the Spotify Web Player.
-      </p>
-      <p>
-        Follow the steps in{' '}
+        GlanceThing needs an extra to enable realtime playback updates,
+        You can check detail in{' '}
         <a
           href="https://github.com/BluDood/GlanceThing/wiki/Getting-your-Spotify-token"
           target="_blank"
           rel="noreferrer"
         >
           this guide
-        </a>{' '}
-        to get the token.
+        </a>.
       </p>
+      <ol>
+        <li>Open <a href="https://open.spotify.com" target="_blank" rel="noreferrer">Spotify Web Player</a> in incognito mode and log in</li>
+        <li>Open DevTools (CTRL+SHIFT+I)</li>
+        <li>Go to <code>Storage</code> (Firefox) or <code>Application</code> (Chrome)</li>
+        <li>Go to <code>Cookies</code>, <code>https://open.spotify.com</code>, and search for <code>sp_dc</code></li>
+        <li>Copy the value below</li>
+      </ol>
       <div className={styles.inputs}>
         <input
           ref={inputRef}
@@ -286,27 +372,29 @@ const TokenSetup: React.FC<TokenSetupProps> = ({ onStepComplete }) => {
           type="password"
           placeholder="sp_dc token"
           className={styles.input}
+          value={spDcToken}
+          onChange={(e) => setSpDcToken(e.target.value.trim())}
         />
       </div>
       {state === TokenSetupState.Checking ? (
-        <div className={styles.state} key={'checking'}>
+        <div className={styles.state} data-small="true" key={'checking'}>
           <Loader />
           <p>Checking...</p>
         </div>
       ) : state === TokenSetupState.Valid ? (
-        <div className={styles.state} key={'valid'}>
+        <div className={styles.state} data-small="true" key={'valid'}>
           <span className="material-icons">check_circle</span>
           <p>Valid!</p>
         </div>
       ) : state === TokenSetupState.Invalid ? (
-        <div className={styles.state} key={'invalid'}>
+        <div className={styles.state} data-small="true" key={'invalid'}>
           <span className="material-icons" data-type="error">
             error
           </span>
           <p>{error ?? 'Invalid token!'}</p>
         </div>
       ) : state === TokenSetupState.Error ? (
-        <div className={styles.state} key={'error'}>
+        <div className={styles.state} data-small="true" key={'error'}>
           <span className="material-icons" data-type="error">
             error
           </span>

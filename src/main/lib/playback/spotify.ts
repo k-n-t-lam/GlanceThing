@@ -1,11 +1,20 @@
 import axios, { AxiosInstance } from 'axios'
 import { TOTP } from 'totp-generator'
 import { WebSocket } from 'ws'
+import { getStorageValue, setStorageValue } from '../storage.js'
+import { app, BrowserWindow } from 'electron'
+import { randomBytes } from 'crypto'
 
 import { BasePlaybackHandler } from './BasePlaybackHandler.js'
-import { log } from '../utils.js'
+import { log, LogLevel } from '../utils.js'
 
 import { Action, PlaybackData, RepeatMode } from '../../types/Playback.js'
+
+const SPOTIFY_REDIRECT_URI = 'glancething://spotify'
+const SPOTIFY_SCOPES = [
+  'user-read-playback-state',
+  'user-modify-playback-state'
+].join(' ')
 
 async function subscribe(connection_id: string, token: string) {
   return await axios.put(
@@ -139,6 +148,119 @@ export async function refreshAccessToken(
   if (res.status !== 200) return null
 
   return res.data.access_token
+}
+
+export async function startSpotifyOAuth(clientId: string): Promise<string> {
+  const state = randomBytes(16).toString('hex')
+  setStorageValue('spotify_auth_state', state)
+  const authUrl = new URL('https://accounts.spotify.com/authorize')
+  authUrl.searchParams.append('client_id', clientId)
+  authUrl.searchParams.append('response_type', 'code')
+  authUrl.searchParams.append('redirect_uri', SPOTIFY_REDIRECT_URI)
+  authUrl.searchParams.append('state', state)
+  authUrl.searchParams.append('scope', SPOTIFY_SCOPES)
+  authUrl.searchParams.append('show_dialog', 'true')
+  const authWindow = new BrowserWindow({
+    width: 800,
+    height: 600,
+    show: true,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true
+    }
+  })
+
+  function handleOAuthCallback(url: string) {
+    try {
+      if (!url.startsWith(SPOTIFY_REDIRECT_URI)) return;
+
+      const urlObj = new URL(url)
+      const queryParams = new URLSearchParams(urlObj.search)
+      const code = queryParams.get('code')
+      const returnedState = queryParams.get('state')
+      const error = queryParams.get('error')
+      authWindow.close()
+
+      const savedState = getStorageValue('spotify_auth_state')
+
+      if (error) {
+        log(`Authorization error: ${error}`, 'Spotify Auth', LogLevel.ERROR)
+        return
+      }
+      if (returnedState !== savedState) {
+        log('State mismatch, possible CSRF attack', 'Spotify Auth', LogLevel.ERROR)
+        return
+      }
+      if (!code) {
+        log('No code found in callback URL', 'Spotify Auth', LogLevel.ERROR)
+        return
+      }
+
+      app.emit('spotify-oauth-callback', null, code)
+    } catch (err) {
+      log(`Error processing callback: ${err}`, 'Spotify Auth', LogLevel.ERROR)
+    }
+  }
+
+  authWindow.webContents.on('will-navigate', (event, url) => {
+    event.preventDefault()
+    handleOAuthCallback(url)
+  })
+  authWindow.webContents.on('did-redirect-navigation', (event, url) => {
+    handleOAuthCallback(url)
+  })
+  authWindow.on('closed', () => {
+    log('Auth window was closed', 'Spotify Auth', LogLevel.DEBUG)
+    setTimeout(() => {
+      log('Sending empty code due to window close', 'Spotify Auth', LogLevel.DEBUG)
+      app.emit('spotify-oauth-callback', null, '')
+    }, 500)
+  })
+  authWindow.loadURL(authUrl.toString())
+  return new Promise((resolve, reject) => {
+    app.once('spotify-oauth-callback', (event, code) => {
+      if (!code) return reject(new Error('No code received'))
+      resolve(code)
+    })
+  })
+}
+
+export async function exchangeSpotifyCodeForToken(
+  clientId: string,
+  clientSecret: string,
+  code: string
+): Promise<string> {
+  const res = await axios.post(
+    'https://accounts.spotify.com/api/token',
+    new URLSearchParams({
+      grant_type: 'authorization_code',
+      code,
+      redirect_uri: SPOTIFY_REDIRECT_URI
+    }),
+    {
+      headers: {
+        Authorization:
+          'Basic ' + Buffer.from(`${clientId}:${clientSecret}`).toString('base64'),
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    }
+  )
+  if (res.status !== 200) throw new Error('Failed to get refresh token')
+  return res.data.refresh_token
+}
+
+export async function setupSpotifyOAuth(clientId: string, clientSecret: string) {
+  try {
+    log(`Starting Spotify OAuth flow`, 'Spotify Auth')
+    const code = await startSpotifyOAuth(clientId, clientSecret)
+    if (!code) throw new Error('Failed to get authorization code')
+    const refreshToken = await exchangeSpotifyCodeForToken(clientId, clientSecret, code)
+    if (!refreshToken) throw new Error('Failed to get refresh token')
+    return refreshToken
+  } catch (err) {
+    log(`Error during Spotify OAuth setup: ${err}`, 'Spotify Auth', LogLevel.ERROR)
+    return ''
+  }
 }
 
 interface SpotifyTrackItem {

@@ -148,3 +148,17 @@
     transform: translateY(0);
   }
 }
+
+.step a{
+  color: #ffffff;
+}
+
+.step .authBtn{
+  color: #ffffff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-left: 10px;
+  margin-top: 10px;
+  background-color: #1ed760;
+}
