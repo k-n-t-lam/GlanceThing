@@ -22,7 +22,15 @@ import {
   setStorageValue
 } from './lib/storage.js'
 import { applyPatch, getPatches } from './lib/patches.js'
-import { isDev, log, LogLevel, setLogLevel } from './lib/utils.js'
+import {
+  clearLogs,
+  downloadLogs,
+  getLogs,
+  isDev,
+  log,
+  LogLevel,
+  setLogLevel
+} from './lib/utils.js'
 import { startServer, stopServer, isServerStarted } from './lib/server.js'
 import {
   findCarThing,
@@ -205,7 +213,10 @@ enum IPCHandler {
   RestartPlaybackHandler = 'restartPlaybackHandler',
   HasCustomClient = 'hasCustomClient',
   ImportCustomClient = 'importCustomClient',
-  RemoveCustomClient = 'removeCustomClient'
+  RemoveCustomClient = 'removeCustomClient',
+  GetLogs = 'getLogs',
+  ClearLogs = 'clearLogs',
+  DownloadLogs = 'downloadLogs'
 }
 
 async function setupIpcHandlers() {
@@ -402,6 +413,18 @@ async function setupIpcHandlers() {
     await removeCustomWebApp()
     await installApp(null)
     return true
+  })
+
+  ipcMain.handle(IPCHandler.GetLogs, async () => {
+    return getLogs()
+  })
+
+  ipcMain.handle(IPCHandler.ClearLogs, async () => {
+    return clearLogs()
+  })
+
+  ipcMain.handle(IPCHandler.DownloadLogs, async () => {
+    await downloadLogs()
   })
 }
 

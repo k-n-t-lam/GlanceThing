@@ -1,5 +1,5 @@
 import { exec } from 'child_process'
-import { app } from 'electron'
+import { app, dialog } from 'electron'
 import { platform } from 'os'
 import crypto from 'crypto'
 import path from 'path'
@@ -46,6 +46,34 @@ export function getLogLevel() {
   return logLevel
 }
 
+const logs: string[] = []
+
+export function getLogs() {
+  return logs
+}
+
+export async function downloadLogs() {
+  const savePath = await dialog.showSaveDialog({
+    title: 'Save logs',
+    filters: [{ name: 'Log files', extensions: ['log'] }]
+  })
+
+  if (savePath.canceled) return null
+
+  if (savePath) {
+    fs.writeFileSync(savePath.filePath, logs.join('\n'), 'utf-8')
+
+    return savePath
+  }
+
+  return null
+}
+
+export function clearLogs() {
+  logs.length = 0
+  log('Logs were cleared')
+}
+
 export function log(text: string, scope?: string, level = LogLevel.INFO) {
   if (level < logLevel) return
 
@@ -65,6 +93,9 @@ export function log(text: string, scope?: string, level = LogLevel.INFO) {
 
   console.log(log)
   fs.appendFileSync(logPath, log + '\n')
+
+  logs.push(log)
+  if (logs.length > 1000) logs.shift()
 }
 
 export function safeParse(json: string) {

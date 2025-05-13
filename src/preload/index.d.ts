@@ -51,6 +51,9 @@ declare global {
       hasCustomClient: () => Promise<boolean>
       importCustomClient: () => Promise<void>
       removeCustomClient: () => Promise<void>
+      getLogs: () => Promise<string[]>
+      clearLogs: () => Promise<void>
+      downloadLogs: () => Promise<void>
     }
   }
 }

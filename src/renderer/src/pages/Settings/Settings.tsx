@@ -17,6 +17,7 @@ enum Tab {
   Appearance,
   Startup,
   Advanced,
+  Logs,
   About
 }
 
@@ -84,13 +85,22 @@ const Settings: React.FC = () => {
               Startup
             </button>
             {devMode ? (
-              <button
-                onClick={() => setCurrentTab(Tab.Advanced)}
-                data-active={currentTab === Tab.Advanced}
-              >
-                <span className="material-icons">code</span>
-                Advanced
-              </button>
+              <>
+                <button
+                  onClick={() => setCurrentTab(Tab.Advanced)}
+                  data-active={currentTab === Tab.Advanced}
+                >
+                  <span className="material-icons">code</span>
+                  Advanced
+                </button>
+                <button
+                  onClick={() => setCurrentTab(Tab.Logs)}
+                  data-active={currentTab === Tab.Logs}
+                >
+                  <span className="material-icons">description</span>
+                  Logs
+                </button>
+              </>
             ) : null}
             <button
               onClick={() => setCurrentTab(Tab.About)}
@@ -111,6 +121,8 @@ const Settings: React.FC = () => {
               <StartupTab />
             ) : currentTab === Tab.Advanced ? (
               <AdvancedTab />
+            ) : currentTab === Tab.Logs ? (
+              <LogsTab />
             ) : currentTab === Tab.About ? (
               <AboutTab />
             ) : null}
@@ -576,6 +588,109 @@ const AdvancedTab: React.FC = () => {
       </div>
     )
   )
+}
+
+const LogsTab: React.FC = () => {
+  const logsRef = useRef<HTMLDivElement>(null)
+  const [logs, setLogs] = useState<string[]>([])
+
+  const [loaded, setLoaded] = useState(false)
+  const settings = useRef<{
+    logLevel?: number
+  }>({})
+
+  useEffect(() => {
+    async function loadSettings() {
+      settings.current = {
+        logLevel: ((await window.api.getStorageValue('logLevel')) ||
+          1) as number
+      }
+      setLoaded(true)
+    }
+
+    loadSettings()
+  }, [])
+
+  useEffect(() => {
+    const updateLogs = async () => setLogs(await window.api.getLogs())
+
+    const interval = setInterval(() => {
+      updateLogs()
+    }, 500)
+
+    updateLogs()
+
+    return () => clearInterval(interval)
+  }, [])
+
+  useEffect(() => {
+    if (logsRef.current) {
+      logsRef.current.scroll({
+        top: logsRef.current.scrollHeight,
+        behavior: 'smooth'
+      })
+    }
+  }, [logsRef.current])
+
+  useEffect(() => {
+    if (logsRef.current) {
+      const currentScroll =
+        logsRef.current.scrollHeight - logsRef.current.clientHeight
+
+      if (currentScroll <= logsRef.current.scrollTop + 200) {
+        logsRef.current.scroll({
+          top: logsRef.current.scrollHeight,
+          behavior: 'smooth'
+        })
+      }
+    }
+  }, [logs])
+
+  return loaded ? (
+    <div className={styles.logsTab}>
+      <div className={styles.logs} ref={logsRef}>
+        {logs.map((log, i) => (
+          <p key={i} className={styles.log}>
+            {log}
+          </p>
+        ))}
+      </div>
+      <div className={styles.controls}>
+        <div className={styles.level}>
+          <p>Log level</p>
+          <select
+            defaultValue={settings.current.logLevel}
+            onChange={e =>
+              window.api.setStorageValue(
+                'logLevel',
+                parseInt(e.target.value as string)
+              )
+            }
+          >
+            <option value="0">Debug</option>
+            <option value="1">Info</option>
+            <option value="2">Warn</option>
+            <option value="3">Error</option>
+          </select>
+        </div>
+        <div className={styles.buttons}>
+          <button
+            onClick={() => window.api.clearLogs().then(() => setLogs([]))}
+            className={styles.clear}
+            data-type="danger"
+          >
+            <span className="material-icons">delete_forever</span>
+          </button>
+          <button
+            onClick={() => window.api.downloadLogs()}
+            className={styles.download}
+          >
+            <span className="material-icons">download</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  ) : null
 }
 
 const AboutTab: React.FC = () => {

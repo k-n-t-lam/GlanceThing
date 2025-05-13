@@ -104,6 +104,65 @@
   }
 }
 
+.logsTab {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: 100%;
+}
+
+.logsTab .logs {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-family: monospace;
+  user-select: text;
+  background: #222;
+  padding: 10px;
+  border-radius: 5px;
+  flex: 1;
+  max-height: 288px; /* reasonable css crashout */
+  overflow-y: auto;
+}
+
+.logsTab .controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.logsTab .controls .level {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logsTab .controls select {
+  padding: 5px;
+  font-size: 16px;
+  border-radius: 5px;
+  background: #222;
+  color: #fff;
+  border: 1px solid #333;
+  transition: 200ms ease;
+}
+
+.logsTab .controls select:focus {
+  outline: none;
+  border: 1px solid #555;
+}
+
+.logsTab .controls .buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.logsTab .controls .buttons button {
+  display: flex;
+  padding: 8px;
+}
+
 .aboutTab .app {
   display: flex;
   align-items: center;
