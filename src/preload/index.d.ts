@@ -48,6 +48,9 @@ declare global {
         config: unknown
       ) => Promise<void>
       restartPlaybackHandler: () => Promise<void>
+      hasCustomClient: () => Promise<boolean>
+      importCustomClient: () => Promise<void>
+      removeCustomClient: () => Promise<void>
     }
   }
 }

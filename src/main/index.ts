@@ -49,6 +49,11 @@ import {
 import icon from '../../resources/icon.png?asset'
 import trayIcon from '../../resources/tray.png?asset'
 import { playbackManager } from './lib/playback/playback.js'
+import {
+  hasCustomWebApp,
+  importCustomWebApp,
+  removeCustomWebApp
+} from './lib/webapp.js'
 
 let mainWindow: BrowserWindow | null = null
 
@@ -197,7 +202,10 @@ enum IPCHandler {
   ValidateConfig = 'validateConfig',
   GetPlaybackHandlerConfig = 'getPlaybackHandlerConfig',
   SetPlaybackHandlerConfig = 'setPlaybackHandlerConfig',
-  RestartPlaybackHandler = 'restartPlaybackHandler'
+  RestartPlaybackHandler = 'restartPlaybackHandler',
+  HasCustomClient = 'hasCustomClient',
+  ImportCustomClient = 'importCustomClient',
+  RemoveCustomClient = 'removeCustomClient'
 }
 
 async function setupIpcHandlers() {
@@ -377,6 +385,23 @@ async function setupIpcHandlers() {
     if (!playbackHandler) return
 
     playbackManager.setup(playbackHandler)
+  })
+
+  ipcMain.handle(IPCHandler.HasCustomClient, async () => {
+    return hasCustomWebApp()
+  })
+
+  ipcMain.handle(IPCHandler.ImportCustomClient, async () => {
+    const res = await importCustomWebApp()
+    if (!res) return false
+    await installApp(null)
+    return true
+  })
+
+  ipcMain.handle(IPCHandler.RemoveCustomClient, async () => {
+    await removeCustomWebApp()
+    await installApp(null)
+    return true
   })
 }
 

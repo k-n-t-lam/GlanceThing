@@ -18,6 +18,7 @@ const Developer: React.FC = () => {
     null
   )
   const carThingStateRef = useRef(carThingState)
+  const [hasCustomClient, setHasCustomClient] = useState(false)
 
   useEffect(() => {
     async function checkServerStarted() {
@@ -49,6 +50,13 @@ const Developer: React.FC = () => {
     }
   }, [])
 
+  const updateHasCustomClient = async () =>
+    setHasCustomClient(await window.api.hasCustomClient())
+
+  useEffect(() => {
+    updateHasCustomClient()
+  }, [])
+
   return (
     <div className={styles.developer}>
       <h1>Developer</h1>
@@ -56,17 +64,37 @@ const Developer: React.FC = () => {
 
       <h2>CarThing</h2>
       <p>State: {carThingState}</p>
-      <div>
+      <div className={styles.buttons}>
         <button onClick={() => window.api.installApp()}>
           Install Web App
         </button>
+        {hasCustomClient ? (
+          <button
+            onClick={() =>
+              window.api.removeCustomClient().then(updateHasCustomClient)
+            }
+            data-type="danger"
+          >
+            Remove Custom Web App
+          </button>
+        ) : (
+          <button
+            onClick={() =>
+              window.api.importCustomClient().then(updateHasCustomClient)
+            }
+          >
+            Import Custom Web App
+          </button>
+        )}
+      </div>
+      <div className={styles.buttons}>
         <button onClick={() => window.api.forwardSocketServer()}>
           Forward WebSocketServer
         </button>
       </div>
 
       <h2>Server</h2>
-      <div>
+      <div className={styles.buttons}>
         {serverStarted ? (
           <button onClick={() => window.api.stopServer()}>
             Stop WebSocketServer
@@ -79,7 +107,9 @@ const Developer: React.FC = () => {
       </div>
 
       <h2>Links</h2>
-      <button onClick={() => navigate('/setup?step=3')}>Setup</button>
+      <div className={styles.buttons}>
+        <button onClick={() => navigate('/setup?step=3')}>Setup</button>
+      </div>
     </div>
   )
 }

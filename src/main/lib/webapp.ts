@@ -1,4 +1,4 @@
-import { app } from 'electron'
+import { app, dialog } from 'electron'
 import axios from 'axios'
 import path from 'path'
 import fs from 'fs'
@@ -12,6 +12,11 @@ import {
 } from './utils.js'
 
 export async function getWebAppDir() {
+  if (isDev() && hasCustomWebApp()) {
+    log('Using custom client webapp', 'Client Webapp')
+    return path.join(app.getPath('userData'), 'customClient')
+  }
+
   if (isDev() && fs.existsSync(path.join(process.cwd(), 'client/dist'))) {
     log('Using local client webapp', 'Client Webapp')
     return path.join(process.cwd(), 'client/dist')
@@ -74,4 +79,60 @@ export async function getWebAppDir() {
   log('Downloaded!', 'Client Webapp')
 
   return extractPath
+}
+
+export function hasCustomWebApp() {
+  const userData = app.getPath('userData')
+  const clientFolder = path.join(userData, 'customClient')
+
+  if (fs.existsSync(clientFolder)) return true
+
+  return false
+}
+
+export async function importCustomWebApp() {
+  const res = await dialog.showOpenDialog({
+    properties: ['openFile'],
+    filters: [{ name: 'GlanceThing Client', extensions: ['zip'] }]
+  })
+
+  if (res.canceled) return false
+
+  const imagePath = res.filePaths[0]
+
+  const userData = app.getPath('userData')
+  const clientFolder = path.join(userData, 'customClient')
+  const target = path.join(clientFolder, `client.zip`)
+
+  if (!fs.existsSync(`${userData}/customClient`))
+    fs.mkdirSync(`${userData}/customClient`)
+
+  fs.copyFileSync(imagePath, target)
+
+  log('Extracting custom client', 'Client Webapp')
+
+  const extract = await execAsync(
+    `${getPlatformTar()} -xf ${target} -C ${clientFolder}`
+  ).catch(() => null)
+
+  fs.rmSync(target)
+
+  if (extract === null) {
+    log('Failed to extract custom client', 'Client Webapp', LogLevel.ERROR)
+    throw new Error('extract_failed')
+  }
+
+  log('Extracted custom client', 'Client Webapp')
+
+  return true
+}
+
+export async function removeCustomWebApp() {
+  const userData = app.getPath('userData')
+  const clientFolder = path.join(userData, 'customClient')
+
+  if (fs.existsSync(clientFolder))
+    fs.rmSync(clientFolder, { recursive: true })
+
+  return true
 }

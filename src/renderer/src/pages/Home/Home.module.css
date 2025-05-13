@@ -41,12 +41,26 @@
   opacity: 0.8;
 }
 
-.setup {
+.notice {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 10px;
   margin-top: 20px;
+}
+
+.notice p {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.notice p span {
+  color: #0064ff;
+}
+
+.notice[data-type='warning'] p span {
+  color: #ff9800;
 }
 
 @keyframes appear {

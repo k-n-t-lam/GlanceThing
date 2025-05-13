@@ -33,7 +33,10 @@ enum IPCHandler {
   ValidateConfig = 'validateConfig',
   GetPlaybackHandlerConfig = 'getPlaybackHandlerConfig',
   SetPlaybackHandlerConfig = 'setPlaybackHandlerConfig',
-  RestartPlaybackHandler = 'restartPlaybackHandler'
+  RestartPlaybackHandler = 'restartPlaybackHandler',
+  HasCustomClient = 'hasCustomClient',
+  ImportCustomClient = 'importCustomClient',
+  RemoveCustomClient = 'removeCustomClient'
 }
 
 // Custom APIs for renderer
@@ -89,7 +92,12 @@ const api = {
       config
     ),
   restartPlaybackHandler: () =>
-    ipcRenderer.invoke(IPCHandler.RestartPlaybackHandler)
+    ipcRenderer.invoke(IPCHandler.RestartPlaybackHandler),
+  hasCustomClient: () => ipcRenderer.invoke(IPCHandler.HasCustomClient),
+  importCustomClient: () =>
+    ipcRenderer.invoke(IPCHandler.ImportCustomClient),
+  removeCustomClient: () =>
+    ipcRenderer.invoke(IPCHandler.RemoveCustomClient)
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

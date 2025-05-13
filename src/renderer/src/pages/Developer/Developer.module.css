@@ -7,6 +7,11 @@
   animation: appear 500ms ease;
 }
 
+.buttons {
+  display: flex;
+  gap: 10px;
+}
+
 @keyframes appear {
   from {
     opacity: 0;

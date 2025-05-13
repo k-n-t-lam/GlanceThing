@@ -1,5 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useContext, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+
+import { DevModeContext } from '@/contexts/DevModeContext.js'
 
 import icon from '@/assets/icon.png'
 
@@ -14,6 +16,9 @@ enum CarThingState {
 
 const Home: React.FC = () => {
   const navigate = useNavigate()
+  const { devMode } = useContext(DevModeContext)
+  const [hasCustomClient, setHasCustomClient] = useState(false)
+
   const [carThingState, setCarThingState] = useState<CarThingState | null>(
     null
   )
@@ -48,6 +53,13 @@ const Home: React.FC = () => {
     }
   }, [])
 
+  const updateHasCustomClient = async () =>
+    setHasCustomClient(await window.api.hasCustomClient())
+
+  useEffect(() => {
+    updateHasCustomClient()
+  }, [devMode])
+
   return (
     <div className={styles.home}>
       <img src={icon} alt="" />
@@ -81,10 +93,26 @@ const Home: React.FC = () => {
         )}
       </div>
       {needsPlaybackSetup && carThingState === CarThingState.Ready ? (
-        <div className={styles.setup}>
+        <div className={styles.notice}>
           <p>You have not set up a playback handler yet!</p>
           <button onClick={() => navigate('/setup?step=3')}>
             Set up now
+          </button>
+        </div>
+      ) : null}
+      {devMode && hasCustomClient ? (
+        <div className={styles.notice} data-type="warning">
+          <p>
+            <span className="material-icons">warning</span>
+            You have a custom client installed!
+          </p>
+          <button
+            data-type="danger"
+            onClick={() =>
+              window.api.removeCustomClient().then(updateHasCustomClient)
+            }
+          >
+            Remove
           </button>
         </div>
       ) : null}
