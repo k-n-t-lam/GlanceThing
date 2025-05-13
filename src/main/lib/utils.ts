@@ -141,7 +141,7 @@ export function getPlatformTar() {
 
   switch (os) {
     case 'win32':
-      return 'C:\\Windows\\System32\\tar.exe'
+      return `${process.env.SystemRoot}\\System32\\tar.exe`
 
     default:
       return 'tar'
