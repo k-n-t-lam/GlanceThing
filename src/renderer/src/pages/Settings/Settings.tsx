@@ -295,6 +295,9 @@ const GeneralTab: React.FC = () => {
 
 const ClientTab: React.FC = () => {
   const [loaded, setLoaded] = useState(false)
+  const [hasCustomImage, setHasCustomImage] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const settings = useRef<{
     timeFormat?: string
     dateFormat?: string
@@ -325,7 +328,13 @@ const ClientTab: React.FC = () => {
           'sleep') as string
       }
       setAutoBrightness(settings.current.autoBrightness ?? false)
+      const hasImage = await window.api.hasCustomScreensaverImage()
+      setHasCustomImage(hasImage)
+      
       setLoaded(true)
+      if (settings.current.sleepMethod === 'screensaver') {
+        setTimeout(() => setLoaded(state => state), 50);
+      }
     }
 
     window.api.isDevMode().then(setIsDev)
@@ -405,10 +414,78 @@ const ClientTab: React.FC = () => {
               label: 'Screensaver'
             }
           ]}
-          onChange={value =>
-            window.api.setStorageValue('sleepMethod', value as string)
-          }
+          onChange={value => {
+            setError(null);
+            setSuccessMessage(null);
+            window.api.setStorageValue('sleepMethod', value as string);
+            if (settings.current) {
+              settings.current.sleepMethod = value as string;
+            }
+            setSuccessMessage(`Sleep method changed to ${value === 'sleep' ? 'Black Screen' : 'Screensaver'}`);
+            setLoaded(false);
+            setTimeout(() => setLoaded(true), 10);
+          }}
         />
+        
+        {successMessage && (
+          <div className={styles.successMessage}>
+            <span className="material-icons">check_circle</span>
+            {successMessage}
+          </div>
+        )}
+        
+        {settings.current.sleepMethod === 'screensaver' && (
+          <div className={styles.screensaverSettings}>
+            <div className={styles.text}>
+              <p className={styles.label}>Custom Screensaver Image</p>
+              <p className={styles.description}>Upload a custom image to use as your screensaver background</p>
+            </div>
+            <div className={styles.screensaverActions}>
+              <button 
+                className={styles.uploadButton}
+                onClick={async () => {
+                  setError(null);
+                  setSuccessMessage(null);
+                  
+                  const result = await window.api.uploadScreensaverImage();
+                  if (result && result.success) {
+                    setHasCustomImage(true);
+                    setSuccessMessage('Image uploaded successfully!');
+                  } else {
+                    setError(result.message || 'Failed to upload image');
+                  }
+                }}
+              >
+                <span className="material-icons">upload</span>
+                {hasCustomImage ? 'Change Image' : 'Upload Image'}
+              </button>
+              {hasCustomImage && (
+                <button 
+                  className={styles.removeButton}
+                  onClick={async () => {
+                    setError(null);
+                    setSuccessMessage(null);
+                    
+                    const success = await window.api.removeScreensaverImage();
+                    if (success) {
+                      setHasCustomImage(false);
+                      setSuccessMessage('Image removed successfully!');
+                    }
+                  }}
+                >
+                  <span className="material-icons">delete</span>
+                  Remove Image
+                </button>
+              )}
+            </div>
+            {error && (
+              <div className={styles.errorMessage}>
+                <span className="material-icons">error</span>
+                {error}
+              </div>
+            )}
+          </div>
+        )}
         {patches && isDev ? (
           <div className={styles.patches}>
             <h2>Patches</h2>

@@ -54,6 +54,9 @@ declare global {
       getLogs: () => Promise<string[]>
       clearLogs: () => Promise<void>
       downloadLogs: () => Promise<void>
+      uploadScreensaverImage: () => Promise<{ success: boolean, error?: string, message?: string }>
+      removeScreensaverImage: () => Promise<boolean>
+      hasCustomScreensaverImage: () => Promise<boolean>
     }
   }
 }

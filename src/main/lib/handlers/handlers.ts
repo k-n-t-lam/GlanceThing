@@ -5,6 +5,7 @@ import * as lock from './lock.js'
 import * as ping from './ping.js'
 import * as playback from './playback.js'
 import * as restore from './restore.js'
+import * as screensaver from './screensaver.js'
 import * as sleep from './sleep.js'
 import * as time from './time.js'
 import * as update from './update.js'
@@ -17,6 +18,7 @@ export const handlers: Handler[] = [
   ping,
   playback,
   restore,
+  screensaver,
   sleep,
   time,
   update,

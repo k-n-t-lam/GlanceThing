@@ -62,6 +62,11 @@ import {
   importCustomWebApp,
   removeCustomWebApp
 } from './lib/webapp.js'
+import {
+  uploadScreensaverImage,
+  removeScreensaverImage,
+  hasCustomScreensaverImage
+} from './lib/screensaver.js'
 
 let mainWindow: BrowserWindow | null = null
 
@@ -216,7 +221,10 @@ enum IPCHandler {
   RemoveCustomClient = 'removeCustomClient',
   GetLogs = 'getLogs',
   ClearLogs = 'clearLogs',
-  DownloadLogs = 'downloadLogs'
+  DownloadLogs = 'downloadLogs',
+  UploadScreensaverImage = 'uploadScreensaverImage',
+  RemoveScreensaverImage = 'removeScreensaverImage',
+  HasCustomScreensaverImage = 'hasCustomScreensaverImage'
 }
 
 async function setupIpcHandlers() {
@@ -425,6 +433,18 @@ async function setupIpcHandlers() {
 
   ipcMain.handle(IPCHandler.DownloadLogs, async () => {
     await downloadLogs()
+  })
+
+  ipcMain.handle(IPCHandler.UploadScreensaverImage, async () => {
+    return await uploadScreensaverImage()
+  })
+
+  ipcMain.handle(IPCHandler.RemoveScreensaverImage, async () => {
+    return removeScreensaverImage()
+  })
+
+  ipcMain.handle(IPCHandler.HasCustomScreensaverImage, async () => {
+    return hasCustomScreensaverImage()
   })
 }
 
