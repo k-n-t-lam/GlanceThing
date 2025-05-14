@@ -373,85 +373,31 @@
 }
 
 .screensaverSettings {
-  margin-top: 10px;
-  background-color: #222;
-  border-radius: 5px;
-  padding: 10px;
-  margin-bottom: 15px;
+  display: flex;
+  flex-direction: column;
 }
 
-.screensaverSettings .text {
-  margin-bottom: 10px;
-}
-
-.screensaverSettings .label {
-  font-size: 16px;
-  font-weight: 500;
-  margin-bottom: 4px;
+.screensaverSettings .header {
+  display: flex;
+  align-items: center;
 }
 
 .screensaverSettings .description {
   font-size: 14px;
   color: #aaa;
-  margin: 0;
 }
 
-.screensaverActions {
+.screensaverSettings .actions {
   display: flex;
   gap: 10px;
 }
 
-.uploadButton,
-.removeButton {
+.screensaverSettings .actions button {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  padding: 8px 15px;
-  border-radius: 5px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: 0.2s ease;
-  border: none;
+  padding: 8px;
 }
 
-.uploadButton {
-  background-color: #1ed760;
-  color: #000;
-}
-
-.uploadButton:hover {
-  background-color: #1db954;
-}
-
-.removeButton {
-  background-color: #ff4040;
-  color: #fff;
-}
-
-.removeButton:hover {
-  background-color: #d63031;
-}
-
-.errorMessage {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 10px;
-  padding: 8px 12px;
-  background-color: rgba(255, 0, 0, 0.1);
-  border-left: 3px solid #ff4040;
-  border-radius: 4px;
-  color: #ff6b6b;
-  font-size: 14px;
-  animation: fadeIn 0.3s ease-in-out;
-}
-
-.errorMessage .material-icons {
-  font-size: 18px;
-}
-
-.successMessage {
+.screensaverSettings .status {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -462,14 +408,11 @@
   border-radius: 4px;
   color: #1ed760;
   font-size: 14px;
-  animation: fadeIn 0.3s ease-in-out;
+  animation: appear 500ms ease;
 }
 
-.successMessage .material-icons {
-  font-size: 18px;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-5px); }
-  to { opacity: 1; transform: translateY(0); }
+.screensaverSettings .status[data-type='error'] {
+  background-color: rgba(255, 0, 0, 0.1);
+  border-left: 3px solid #ff4040;
+  color: #ff6b6b;
 }

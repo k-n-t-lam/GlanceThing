@@ -7,7 +7,9 @@ import { AuthenticatedWebSocket } from '../types/WebSocketServer.js'
 export async function uploadScreensaverImage() {
   const res = await dialog.showOpenDialog({
     properties: ['openFile'],
-    filters: [{ name: 'Image Files', extensions: ['png', 'jpg', 'jpeg', 'webp'] }]
+    filters: [
+      { name: 'Image Files', extensions: ['png', 'jpg', 'jpeg', 'webp'] }
+    ]
   })
 
   if (res.canceled) return { success: false }
@@ -23,7 +25,8 @@ export async function uploadScreensaverImage() {
       return {
         success: false,
         error: 'size_limit_exceeded',
-        message: 'Image size exceeds the 5MB limit. Please select a smaller image.'
+        message:
+          'Image size exceeds the 5MB limit. Please select a smaller image.'
       }
     }
   } catch (error) {

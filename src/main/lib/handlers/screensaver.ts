@@ -32,7 +32,7 @@ function getScreensaverImage() {
 export const actions: HandlerAction[] = [
   {
     action: 'getImage',
-    handle: async (ws) => {
+    handle: async ws => {
       const res = getScreensaverImage()
       if (!res || !res.length) return
 

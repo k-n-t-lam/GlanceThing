@@ -16,19 +16,22 @@ const Screensaver: React.FC<ScreensaverProps> = ({ type }) => {
   const [loaded, setLoaded] = useState(false)
   const [customImage, setCustomImage] = useState<string | null>(null)
 
-  const validateImage = useCallback((imageUrl: string): Promise<boolean> => {
-    return new Promise((resolve) => {
-      if (!imageUrl || !imageUrl.startsWith('data:image/')) {
-        resolve(false)
-        return
-      }
+  const validateImage = useCallback(
+    (imageUrl: string): Promise<boolean> => {
+      return new Promise(resolve => {
+        if (!imageUrl || !imageUrl.startsWith('data:image/')) {
+          resolve(false)
+          return
+        }
 
-      const img = new Image()
-      img.onload = () => resolve(true)
-      img.onerror = () => resolve(false)
-      img.src = imageUrl
-    })
-  }, [])
+        const img = new Image()
+        img.onload = () => resolve(true)
+        img.onerror = () => resolve(false)
+        img.src = imageUrl
+      })
+    },
+    []
+  )
 
   useEffect(() => {
     const loadCachedImage = async () => {
@@ -73,8 +76,14 @@ const Screensaver: React.FC<ScreensaverProps> = ({ type }) => {
           validateImage(data.data.image).then(isValid => {
             if (isValid) {
               setCustomImage(data.data.image)
-              if (data.data.image && data.data.image.length < MAX_IMAGE_SIZE) {
-                localStorage.setItem('cachedScreensaverImage', data.data.image)
+              if (
+                data.data.image &&
+                data.data.image.length < MAX_IMAGE_SIZE
+              ) {
+                localStorage.setItem(
+                  'cachedScreensaverImage',
+                  data.data.image
+                )
               }
             }
           })
@@ -122,12 +131,10 @@ const Screensaver: React.FC<ScreensaverProps> = ({ type }) => {
       {loaded && (
         <>
           {customImage ? (
-            <>
-              <div
-                className={styles.customImage}
-                style={{ backgroundImage: `url(${customImage})` }}
-              ></div>
-            </>
+            <div
+              className={styles.customImage}
+              style={{ backgroundImage: `url(${customImage})` }}
+            ></div>
           ) : (
             <>
               <div className={styles.circle1}></div>
