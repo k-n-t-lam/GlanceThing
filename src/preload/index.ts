@@ -39,7 +39,10 @@ enum IPCHandler {
   RemoveCustomClient = 'removeCustomClient',
   GetLogs = 'getLogs',
   ClearLogs = 'clearLogs',
-  DownloadLogs = 'downloadLogs'
+  DownloadLogs = 'downloadLogs',
+  UploadScreensaverImage = 'uploadScreensaverImage',
+  RemoveScreensaverImage = 'removeScreensaverImage',
+  HasCustomScreensaverImage = 'hasCustomScreensaverImage'
 }
 
 // Custom APIs for renderer
@@ -103,7 +106,13 @@ const api = {
     ipcRenderer.invoke(IPCHandler.RemoveCustomClient),
   getLogs: () => ipcRenderer.invoke(IPCHandler.GetLogs),
   clearLogs: () => ipcRenderer.invoke(IPCHandler.ClearLogs),
-  downloadLogs: () => ipcRenderer.invoke(IPCHandler.DownloadLogs)
+  downloadLogs: () => ipcRenderer.invoke(IPCHandler.DownloadLogs),
+  hasCustomScreensaverImage: () =>
+    ipcRenderer.invoke(IPCHandler.HasCustomScreensaverImage),
+  uploadScreensaverImage: () =>
+    ipcRenderer.invoke(IPCHandler.UploadScreensaverImage),
+  removeScreensaverImage: () =>
+    ipcRenderer.invoke(IPCHandler.RemoveScreensaverImage)
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

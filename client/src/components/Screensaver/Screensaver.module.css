@@ -122,3 +122,16 @@
     rgba(65, 56, 210, 0) 100%
   );
 }
+
+.customImage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-size: cover;
+  background-position: center;
+  animation: fadeIn 1s ease-out;
+  transition: opacity 0.3s ease-in-out;
+  opacity: 1;
+}

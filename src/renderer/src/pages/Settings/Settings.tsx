@@ -295,6 +295,11 @@ const GeneralTab: React.FC = () => {
 
 const ClientTab: React.FC = () => {
   const [loaded, setLoaded] = useState(false)
+  const [hasCustomImage, setHasCustomImage] = useState(false)
+  const [screensaverStatus, setScreensaverStatus] = useState<{
+    message: string
+    status: 'error' | 'success'
+  } | null>(null)
   const settings = useRef<{
     timeFormat?: string
     dateFormat?: string
@@ -304,6 +309,7 @@ const ClientTab: React.FC = () => {
   }>({})
 
   const [autoBrightness, setAutoBrightness] = useState(false)
+  const [sleepMethod, setSleepMethod] = useState('sleep')
   const [patches, setPatches] = useState<
     { name: string; description: string; installed: boolean }[] | null
   >(null)
@@ -325,6 +331,11 @@ const ClientTab: React.FC = () => {
           'sleep') as string
       }
       setAutoBrightness(settings.current.autoBrightness ?? false)
+      setSleepMethod(settings.current.sleepMethod ?? 'sleep')
+
+      const hasImage = await window.api.hasCustomScreensaverImage()
+      setHasCustomImage(hasImage)
+
       setLoaded(true)
     }
 
@@ -405,10 +416,90 @@ const ClientTab: React.FC = () => {
               label: 'Screensaver'
             }
           ]}
-          onChange={value =>
+          onChange={value => {
             window.api.setStorageValue('sleepMethod', value as string)
-          }
+            setSleepMethod(value as string)
+          }}
         />
+
+        {sleepMethod === 'screensaver' && (
+          <div className={styles.screensaverSettings}>
+            <div className={styles.header}>
+              <div className={styles.text}>
+                <p className={styles.label}>Custom Screensaver Image</p>
+                <p className={styles.description}>
+                  Upload a custom image to use as your screensaver
+                  background
+                </p>
+              </div>
+              <div className={styles.actions}>
+                <button
+                  onClick={async () => {
+                    setScreensaverStatus(null)
+
+                    const result =
+                      await window.api.uploadScreensaverImage()
+
+                    if (result && result.success) {
+                      setHasCustomImage(true)
+                      setScreensaverStatus({
+                        message: 'Image uploaded successfully!',
+                        status: 'success'
+                      })
+                    } else {
+                      setScreensaverStatus({
+                        message:
+                          result.message || 'Failed to upload image',
+                        status: 'error'
+                      })
+                    }
+                  }}
+                >
+                  <span className="material-icons">upload</span>
+                </button>
+                {hasCustomImage && (
+                  <button
+                    data-type="danger"
+                    onClick={async () => {
+                      setScreensaverStatus(null)
+
+                      const success =
+                        await window.api.removeScreensaverImage()
+
+                      if (success) {
+                        setHasCustomImage(false)
+                        setScreensaverStatus({
+                          message: 'Image removed successfully!',
+                          status: 'success'
+                        })
+                      } else {
+                        setScreensaverStatus({
+                          message: 'Failed to remove image',
+                          status: 'error'
+                        })
+                      }
+                    }}
+                  >
+                    <span className="material-icons">delete</span>
+                  </button>
+                )}
+              </div>
+            </div>
+            {screensaverStatus && (
+              <div
+                className={styles.status}
+                data-type={screensaverStatus.status}
+              >
+                <span className="material-icons">
+                  {screensaverStatus.status === 'error'
+                    ? 'error_outline'
+                    : 'check_circle'}
+                </span>
+                {screensaverStatus.message}
+              </div>
+            )}
+          </div>
+        )}
         {patches && isDev ? (
           <div className={styles.patches}>
             <h2>Patches</h2>
