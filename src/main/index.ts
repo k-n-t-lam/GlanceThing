@@ -34,6 +34,7 @@ import {
 import { startServer, stopServer, isServerStarted } from './lib/server.js'
 import {
   findCarThing,
+  rebootCarThing,
   installApp,
   checkInstalledApp,
   forwardSocketServer,
@@ -192,6 +193,7 @@ app.on('activate', () => {
 enum IPCHandler {
   FindCarThing = 'findCarThing',
   FindSetupCarThing = 'findSetupCarThing',
+  RebootCarThing = 'rebootCarThing',
   InstallApp = 'installApp',
   StartServer = 'startServer',
   StopServer = 'stopServer',
@@ -242,6 +244,10 @@ async function setupIpcHandlers() {
     if (!installed) return 'not_installed'
 
     return 'ready'
+  })
+
+  ipcMain.handle(IPCHandler.RebootCarThing, async () => {
+    await rebootCarThing(null)
   })
 
   ipcMain.handle(IPCHandler.InstallApp, async () => {
@@ -452,8 +458,8 @@ async function setupTray() {
   const icon =
     os.platform() === 'darwin'
       ? nativeImage
-          .createFromPath(trayIcon)
-          .resize({ height: 24, width: 24 })
+        .createFromPath(trayIcon)
+        .resize({ height: 24, width: 24 })
       : trayIcon
   const tray = new Tray(icon)
 

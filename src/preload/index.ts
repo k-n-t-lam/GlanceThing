@@ -10,6 +10,7 @@ interface Shortcut {
 enum IPCHandler {
   FindCarThing = 'findCarThing',
   FindSetupCarThing = 'findSetupCarThing',
+  RebootCarThing = 'rebootCarThing',
   InstallApp = 'installApp',
   StartServer = 'startServer',
   StopServer = 'stopServer',
@@ -56,6 +57,8 @@ const api = {
   findCarThing: () => ipcRenderer.invoke(IPCHandler.FindCarThing),
   findSetupCarThing: () =>
     ipcRenderer.invoke(IPCHandler.FindSetupCarThing),
+  rebootCarThing: () =>
+    ipcRenderer.invoke(IPCHandler.RebootCarThing),
   installApp: () => ipcRenderer.invoke(IPCHandler.InstallApp),
   startServer: () => ipcRenderer.invoke(IPCHandler.StartServer),
   stopServer: () => ipcRenderer.invoke(IPCHandler.StopServer),
