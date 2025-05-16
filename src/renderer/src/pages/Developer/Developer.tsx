@@ -13,6 +13,16 @@ enum CarThingState {
 const Developer: React.FC = () => {
   const navigate = useNavigate()
   const [serverStarted, setServerStarted] = useState(false)
+  const [lyricsCacheCleared, setLyricsCacheCleared] = useState(false)
+
+  const clearLyricsCache = async () => {
+    await window.api.setStorageValue('spotify_lyrics_cache', null)
+    setLyricsCacheCleared(true)
+
+    setTimeout(() => {
+      setLyricsCacheCleared(false)
+    }, 3000)
+  }
 
   const [carThingState, setCarThingState] = useState<CarThingState | null>(
     null
@@ -108,6 +118,16 @@ const Developer: React.FC = () => {
           <button onClick={() => window.api.startServer()}>
             Start WebSocketServer
           </button>
+        )}
+      </div>
+      <div className={styles.buttons}>
+        <button onClick={clearLyricsCache}>
+          Clear Spotify Lyrics Cache
+        </button>
+        {lyricsCacheCleared && (
+          <span className={styles.successMessage}>
+            Lyrics cache cleared successfully, please restart GlanceThing!
+          </span>
         )}
       </div>
 
