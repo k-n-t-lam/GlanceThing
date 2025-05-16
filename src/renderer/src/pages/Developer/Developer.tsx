@@ -14,6 +14,8 @@ const Developer: React.FC = () => {
   const navigate = useNavigate()
   const [serverStarted, setServerStarted] = useState(false)
   const [lyricsCacheCleared, setLyricsCacheCleared] = useState(false)
+  const [playlistImageCacheCleared, setPlaylistImageCacheCleared] =
+    useState(false)
 
   const clearLyricsCache = async () => {
     await window.api.setStorageValue('spotify_lyrics_cache', null)
@@ -21,6 +23,15 @@ const Developer: React.FC = () => {
 
     setTimeout(() => {
       setLyricsCacheCleared(false)
+    }, 3000)
+  }
+
+  const clearPlaylistImageCache = async () => {
+    await window.api.setStorageValue('spotify_playlist_image_cache', null)
+    setPlaylistImageCacheCleared(true)
+
+    setTimeout(() => {
+      setPlaylistImageCacheCleared(false)
     }, 3000)
   }
 
@@ -127,6 +138,17 @@ const Developer: React.FC = () => {
         {lyricsCacheCleared && (
           <span className={styles.successMessage}>
             Lyrics cache cleared successfully, please restart GlanceThing!
+          </span>
+        )}
+      </div>
+      <div className={styles.buttons}>
+        <button onClick={clearPlaylistImageCache}>
+          Clear Spotify Playlist Image Cache
+        </button>
+        {playlistImageCacheCleared && (
+          <span className={styles.successMessage}>
+            Playlist image cache cleared successfully, please restart
+            GlanceThing!
           </span>
         )}
       </div>

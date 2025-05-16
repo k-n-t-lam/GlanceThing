@@ -16,6 +16,7 @@ export type PlaybackData = {
   shuffle: boolean
   repeat: RepeatMode
   track: {
+    id: string
     name: string
     artists: string[]
     album: string

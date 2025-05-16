@@ -24,4 +24,12 @@ export abstract class BasePlaybackHandler extends (EventEmitter as new () => Typ
   abstract repeat(stae: RepeatMode): Promise<void>
   abstract getImage(): Promise<Buffer | null>
   abstract getLyrics(): Promise<LyricsResponse | null>
+  abstract getPlaylists(offset: number): Promise<any>
+  abstract getPlaylistTracks(
+    playlistID: string,
+    offset?: number,
+    limit?: number
+  ): Promise<any>
+  abstract playPlaylist(playlistID: string): Promise<void>
+  abstract playTrack(trackID: string, playlistID?: string): Promise<any>
 }

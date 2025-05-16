@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from 'react'
+import { useContext, useEffect } from 'react'
 
 import { AppBlurContext } from '@/contexts/AppBlurContext.tsx'
 import { SocketContext } from '@/contexts/SocketContext.tsx'
@@ -10,28 +10,36 @@ import UpdateScreen from './components/UpdateScreen/UpdateScreen.tsx'
 import Statusbar from '@/components/Statusbar/Statusbar.tsx'
 import Widgets from '@/components/Widgets/Widgets.tsx'
 import Menu from '@/components/Menu/Menu.tsx'
+import PlaylistsScreen from './components/PlaylistsScreen/PlaylistsScreen.tsx'
 
 import styles from './App.module.css'
 
 const App: React.FC = () => {
   const { blurred } = useContext(AppBlurContext)
   const { ready } = useContext(SocketContext)
-  const { showStatusBar } = useContext(AppStateContext)
-  const [playerShown, setPlayerShown] = useState(false)
+  const {
+    showStatusBar,
+    playerShown,
+    setPlayerShown,
+    playlistsShown,
+    setPlaylistsShown
+  } = useContext(AppStateContext)
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setPlayerShown(s => !s)
+    const listener = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !playlistsShown) {
+        setPlayerShown(!playerShown)
+      } else if (e.key === 'Escape' && playlistsShown) {
+        setPlaylistsShown(!playlistsShown)
       }
     }
 
-    document.addEventListener('keydown', handleKeyDown)
+    document.addEventListener('keydown', listener)
 
     return () => {
-      document.removeEventListener('keydown', handleKeyDown)
+      document.removeEventListener('keydown', listener)
     }
-  }, [])
+  })
 
   return (
     <>
@@ -39,6 +47,10 @@ const App: React.FC = () => {
         {showStatusBar && <Statusbar />}
         <Widgets />
         <FullescreenPlayer shown={playerShown} setShown={setPlayerShown} />
+        <PlaylistsScreen
+          shown={playlistsShown}
+          setShown={setPlaylistsShown}
+        />
       </div>
       <LoadingScreen />
       <UpdateScreen />

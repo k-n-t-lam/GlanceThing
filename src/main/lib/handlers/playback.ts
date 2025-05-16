@@ -4,6 +4,7 @@ import {
   HandlerFunction
 } from '../../types/WebSocketHandler.js'
 import { playbackManager } from '../playback/playback.js'
+import { log, LogLevel, intToRgb } from '../utils.js'
 
 export const name = 'playback'
 
@@ -75,6 +76,94 @@ export const actions: HandlerAction[] = [
           type: 'playback',
           action: 'lyrics',
           data: lyrics
+        })
+      )
+    }
+  },
+  {
+    action: 'playlists',
+    handle: async (ws, data) => {
+      const offset = (data as { offset: number }).offset
+      const playlists = await playbackManager.getPlaylists(offset)
+      if (!playlists) return
+      ws.send(
+        JSON.stringify({
+          type: 'playback',
+          action: 'playlists',
+          data: playlists
+        })
+      )
+    }
+  },
+  {
+    action: 'playlistTracks',
+    handle: async (ws, data) => {
+      const {
+        playlistID,
+        offset = 0,
+        limit = 50
+      } = data as {
+        playlistID: string
+        offset?: number
+        limit?: number
+      }
+
+      log(
+        `Fetching tracks for playlist ${playlistID} (offset: ${offset}, limit: ${limit})`,
+        'Playback',
+        LogLevel.DEBUG
+      )
+
+      const tracks = await playbackManager.getPlaylistTracks(
+        playlistID,
+        offset,
+        limit
+      )
+      if (!tracks) return
+
+      ws.send(
+        JSON.stringify({
+          type: 'playback',
+          action: 'playlistTracks',
+          data: tracks
+        })
+      )
+    }
+  },
+  {
+    action: 'playPlaylist',
+    handle: async (_, data) => {
+      await playbackManager.playPlaylist(
+        (data as { playlistID: string }).playlistID
+      )
+    }
+  },
+  {
+    action: 'playTrack',
+    handle: async (ws, data) => {
+      const { trackID, playlistID } = data as {
+        trackID: string
+        playlistID?: string
+      }
+      log(
+        `Handling playTrack request for track ${trackID}${playlistID ? ` in playlist ${playlistID}` : ''}`,
+        'Playback',
+        LogLevel.DEBUG
+      )
+
+      const result = await playbackManager.playTrack(trackID, playlistID)
+
+      // Send a response back to the client to confirm track is playing
+      ws.send(
+        JSON.stringify({
+          type: 'playback',
+          action: 'trackPlayed',
+          data: {
+            success: result?.success || true,
+            trackID,
+            playlistID,
+            error: result?.error || null
+          }
         })
       )
     }

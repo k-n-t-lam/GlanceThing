@@ -58,6 +58,7 @@
 
 .scroll > .column {
   scroll-snap-align: start;
+  scroll-snap-stop: always;
   min-width: 100%;
   contain: paint layout;
   transform: translateZ(0);

@@ -4,6 +4,7 @@ import type { KeyboardEvent, WheelEvent } from 'react'
 import BaseWidget from '../BaseWidget/BaseWidget.tsx'
 
 import { SocketContext } from '@/contexts/SocketContext.tsx'
+import { AppStateContext } from '@/contexts/AppStateContext.tsx'
 
 import styles from './Controls.module.css'
 
@@ -13,6 +14,7 @@ interface ControlsProps {
 
 const Controls: React.FC<ControlsProps> = ({ visible }) => {
   const { socket } = useContext(SocketContext)
+  const { setPlaylistsShown } = useContext(AppStateContext)
 
   const controlsRef = useRef<HTMLDivElement>(null)
 
@@ -100,6 +102,21 @@ const Controls: React.FC<ControlsProps> = ({ visible }) => {
       >
         <span className="material-icons">lock</span>
         <p>Lock</p>
+      </div>
+      <div
+        className={styles.control}
+        tabIndex={-1}
+        data-type="playlists"
+        onKeyDown={e => {
+          if (e.key === 'Enter') {
+            e.stopPropagation()
+            setPlaylistsShown(true)
+          }
+        }}
+        onClick={() => setPlaylistsShown(true)}
+      >
+        <span className="material-icons">menu</span>
+        <p>Playlists</p>
       </div>
     </BaseWidget>
   )

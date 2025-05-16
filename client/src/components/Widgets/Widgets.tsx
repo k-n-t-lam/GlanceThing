@@ -8,7 +8,7 @@ import {
 } from 'react'
 import { AppStateContext } from '@/contexts/AppStateContext.tsx'
 import { MediaContext } from '@/contexts/MediaContext.tsx'
-import { debouncedFunction } from '@/lib/utils.ts'
+import { debounce } from '@/lib/utils.ts'
 
 import Controls from './widgets/Controls/Controls.tsx'
 import Player from './widgets/Player/Player.tsx'
@@ -179,10 +179,6 @@ const Widgets: React.FC = () => {
 
   const navigateToSection = useCallback(
     (sectionIndex: number) => {
-      console.log(
-        `Navigating to section ${sectionIndex + 1}, current: ${activeSection}`
-      )
-
       setActiveSection(sectionIndex + 1)
 
       setTimeout(() => {
@@ -192,8 +188,6 @@ const Widgets: React.FC = () => {
         }
 
         const sectionWidth = scrollRef.current.clientWidth
-        console.log(`Scrolling to ${sectionIndex * sectionWidth}px`)
-
         scrollRef.current.scrollTo({
           left: sectionIndex * sectionWidth,
           behavior: 'smooth'
@@ -230,64 +224,38 @@ const Widgets: React.FC = () => {
     })
   }, [sections, lyricsVisible])
 
-  const canSwitchToLyrics = useCallback(() => {
-    const hasLyrics =
-      lyricsData?.lyrics?.lines && lyricsData.lyrics?.lines?.length > 0
+  const checkSwitchToLyrics = useCallback(() => {
     if (
       !autoSwitchToLyrics ||
       !lyricsVisible ||
-      lyricsIndex === -1 ||
+      isUserScrolled ||
       isUserScrolling ||
-      !hasLyrics ||
+      !(
+        lyricsData?.lyrics?.lines && lyricsData.lyrics?.lines?.length > 0
+      ) ||
       activeSection === lyricsIndex + 1
     ) {
-      return false
+      return
     }
-    return true
+    navigateToSection(lyricsIndex)
   }, [
     autoSwitchToLyrics,
     lyricsVisible,
     lyricsIndex,
-    isUserScrolling,
     lyricsData,
-    activeSection
+    activeSection,
+    isUserScrolled,
+    isUserScrolling,
+    navigateToSection
   ])
 
   useEffect(() => {
-    if (!playerData?.track) return
-
-    const trackId = `${playerData.track.name}-${playerData.track.artists.join(',')}`
-    const trackChanged = trackId !== currentTrackId
-
-    if (trackChanged) {
-      setCurrentTrackId(trackId)
+    if (currentTrackId !== playerData?.track?.id) {
+      setCurrentTrackId(playerData?.track?.id ?? null)
       setIsUserScrolled(false)
+      checkSwitchToLyrics()
     }
-
-    const shouldSwitch = canSwitchToLyrics()
-
-    if (shouldSwitch) {
-      if (
-        (trackChanged && !isUserScrolled) ||
-        (!isUserScrolled && playerData.isPlaying)
-      ) {
-        console.log(`Auto-switching to lyrics section (${lyricsIndex})`)
-
-        const switchTimeout = setTimeout(() => {
-          navigateToSection(lyricsIndex)
-        }, 1000)
-
-        return () => clearTimeout(switchTimeout)
-      }
-    }
-  }, [
-    playerData,
-    currentTrackId,
-    canSwitchToLyrics,
-    isUserScrolled,
-    navigateToSection,
-    lyricsIndex
-  ])
+  }, [playerData, currentTrackId, checkSwitchToLyrics])
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -326,7 +294,7 @@ const Widgets: React.FC = () => {
 
     updateActiveSection()
 
-    const debouncedUpdate = debouncedFunction(() => {
+    const debouncedUpdate = debounce(() => {
       if (!scrollElement) return
 
       const scrollPosition = scrollElement.scrollLeft

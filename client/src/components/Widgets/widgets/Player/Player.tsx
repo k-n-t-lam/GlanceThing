@@ -7,8 +7,7 @@ import {
   useCallback,
   WheelEvent
 } from 'react'
-
-import { formatTime, debouncedFunction } from '@/lib/utils.ts'
+import { formatTime, debounce } from '@/lib/utils.ts'
 
 import BaseWidget from '../BaseWidget/BaseWidget.tsx'
 
@@ -413,7 +412,7 @@ const Player: React.FC = () => {
   ])
 
   useEffect(() => {
-    const debouncedResize = debouncedFunction(() => {
+    const debouncedResize = debounce(() => {
       checkTextOverflow()
     }, 200)
 

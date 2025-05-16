@@ -284,6 +284,7 @@ export function filterData(
       shuffle: shuffle_state,
       volume: device.volume_percent,
       track: {
+        id: item.id,
         album: item.show.name,
         artists: [item.show.publisher],
         duration: {
@@ -306,6 +307,7 @@ export function filterData(
       shuffle: shuffle_state,
       volume: device.volume_percent,
       track: {
+        id: item.id,
         album: item.album.name,
         artists: item.artists.map(a => a.name),
         duration: {
@@ -348,13 +350,56 @@ class SpotifyHandler extends BasePlaybackHandler {
   cacheCleanupInterval: NodeJS.Timeout | null = null
   lyricsCacheStorageKey: string = 'spotify_lyrics_cache'
 
+  // Playlist image cache
+  playlistImageCache: Map<string, { data: string; timestamp: number }> =
+    new Map()
+  playlistImageCacheExpiration: number = 7 * 24 * 60 * 60 * 1000 // 7 days
+  playlistImageCacheStorageKey: string = 'spotify_playlist_image_cache'
+
+  cleanPlaylistImageCache(): void {
+    const now = Date.now()
+    let expiredCount = 0
+
+    for (const [playlistId, entry] of this.playlistImageCache.entries()) {
+      if (now - entry.timestamp > this.playlistImageCacheExpiration) {
+        this.playlistImageCache.delete(playlistId)
+        expiredCount++
+      }
+    }
+
+    log(
+      `Cleaned playlist image cache. Removed ${expiredCount} expired entries. Current size: ${this.playlistImageCache.size} entries`,
+      'Spotify',
+      LogLevel.DEBUG
+    )
+  }
+
+  savePlaylistImageCache(): void {
+    try {
+      const cacheEntries = Array.from(this.playlistImageCache.entries())
+      setStorageValue(this.playlistImageCacheStorageKey, cacheEntries)
+      log(
+        `Saved playlist image cache with ${cacheEntries.length} entries`,
+        'Spotify',
+        LogLevel.DEBUG
+      )
+    } catch (error) {
+      log(
+        `Error saving playlist image cache: ${error}`,
+        'Spotify',
+        LogLevel.ERROR
+      )
+    }
+  }
+
   async setup(config: SpotifyConfig): Promise<void> {
     log('Setting up', 'Spotify')
 
     this.config = config
 
-    // Load lyrics cache from storage if available
+    // Load caches from storage if available
     this.loadLyricsCache()
+    this.loadPlaylistImageCache()
 
     this.instance = axios.create({
       baseURL: 'https://api.spotify.com/v1',
@@ -414,6 +459,8 @@ class SpotifyHandler extends BasePlaybackHandler {
       () => {
         this.cleanLyricsCache()
         this.saveLyricsCache()
+        this.cleanPlaylistImageCache()
+        this.savePlaylistImageCache()
       },
       60 * 60 * 1000
     )
@@ -474,6 +521,9 @@ class SpotifyHandler extends BasePlaybackHandler {
 
     this.saveLyricsCache()
     this.lyricsCache.clear()
+
+    this.savePlaylistImageCache()
+    this.playlistImageCache.clear()
 
     if (this.cacheCleanupInterval) {
       clearInterval(this.cacheCleanupInterval)
@@ -544,6 +594,34 @@ class SpotifyHandler extends BasePlaybackHandler {
         LogLevel.ERROR
       )
       this.lyricsCache = new Map()
+    }
+  }
+
+  loadPlaylistImageCache(): void {
+    try {
+      const cachedData = getStorageValue(this.playlistImageCacheStorageKey)
+      if (cachedData && Array.isArray(cachedData)) {
+        this.playlistImageCache = new Map(cachedData)
+        log(
+          `Loaded playlist image cache with ${this.playlistImageCache.size} entries`,
+          'Spotify',
+          LogLevel.DEBUG
+        )
+        this.cleanPlaylistImageCache()
+      } else {
+        log(
+          `No playlist image cache found or invalid format`,
+          'Spotify',
+          LogLevel.DEBUG
+        )
+      }
+    } catch (error) {
+      log(
+        `Error loading playlist image cache: ${error}`,
+        'Spotify',
+        LogLevel.ERROR
+      )
+      this.playlistImageCache = new Map()
     }
   }
 
@@ -761,6 +839,294 @@ class SpotifyHandler extends BasePlaybackHandler {
       })
       this.saveLyricsCache()
       return this.lyricsCache.get(trackId)?.data ?? null
+    }
+  }
+
+  async getPlaylists(offset: number = 0) {
+    try {
+      // Get playlists from Spotify API
+      let res = await this.instance!.get('/me/playlists', {
+        params: {
+          offset: offset,
+          limit: 50
+        }
+      })
+
+      log(
+        `Fetched ${res.data?.items?.length || 0} playlists from Spotify API with offset ${offset}`,
+        'Spotify',
+        LogLevel.DEBUG
+      )
+
+      if (res.status !== 200 || !res.data?.items) {
+        log(
+          `Failed to get playlists: ${res.status}`,
+          'Spotify',
+          LogLevel.ERROR
+        )
+        return { items: [], offset: offset, total: 0 }
+      }
+
+      // Process playlists one by one to add images
+      const processedPlaylists: any[] = []
+      const now = Date.now()
+
+      for (const item of res.data.items) {
+        try {
+          // Create a copy of the playlist item to avoid modifying the original
+          const processedItem = { ...item }
+
+          // Process image if available
+          if (item.images && item.images.length > 0) {
+            try {
+              const imageUrl = item.images[0].url
+              const playlistId = item.id
+
+              // Check if image is in cache and not expired
+              const cachedImage = this.playlistImageCache.get(playlistId)
+              if (
+                cachedImage &&
+                now - cachedImage.timestamp <
+                  this.playlistImageCacheExpiration
+              ) {
+                log(
+                  `Using cached image for playlist ${playlistId}`,
+                  'Spotify',
+                  LogLevel.DEBUG
+                )
+                processedItem.image = cachedImage.data
+              } else {
+                // Fetch image if not cached or expired
+                log(
+                  `Fetching image for playlist ${playlistId}`,
+                  'Spotify',
+                  LogLevel.DEBUG
+                )
+                const imageRes = await axios.get(imageUrl, {
+                  responseType: 'arraybuffer'
+                })
+
+                // Add the image as base64 data with data URL prefix
+                const imageData = `data:image/jpeg;base64,${Buffer.from(imageRes.data).toString('base64')}`
+                processedItem.image = imageData
+
+                // Cache the image
+                this.playlistImageCache.set(playlistId, {
+                  data: imageData,
+                  timestamp: now
+                })
+              }
+            } catch (imgErr) {
+              log(
+                `Error fetching image for playlist ${item.id}: ${imgErr}`,
+                'Spotify',
+                LogLevel.WARN
+              )
+              processedItem.image = '' // Fallback
+            }
+          } else {
+            processedItem.image = '' // No image available
+          }
+
+          processedPlaylists.push(processedItem)
+        } catch (itemErr) {
+          log(
+            `Error processing playlist item: ${itemErr}`,
+            'Spotify',
+            LogLevel.ERROR
+          )
+          // Still add the item without image in case of error
+          processedPlaylists.push(item)
+        }
+      }
+
+      // Save the updated cache
+      this.savePlaylistImageCache()
+
+      log(
+        `Processed ${processedPlaylists.length} playlists with images`,
+        'Spotify',
+        LogLevel.DEBUG
+      )
+
+      // Return the processed items along with pagination info
+      return {
+        items: processedPlaylists,
+        offset: offset, // Include the original offset in the response
+        total: res.data.total,
+        limit: res.data.limit,
+        next: res.data.next,
+        previous: res.data.previous
+      }
+    } catch (error) {
+      log(`Error in getPlaylists: ${error}`, 'Spotify', LogLevel.ERROR)
+      return { items: [], offset: offset, total: 0 }
+    }
+  }
+
+  async getLikedSongs() {
+    const res = await this.instance!.get('/me/tracks')
+
+    return res.data
+  }
+
+  async getUserID() {
+    const res = await this.instance!.get('/me')
+
+    return res.data.id
+  }
+
+  async playPlaylist(playlistID: string) {
+    log(`Playing playlist: ${playlistID}`, 'Spotify', LogLevel.DEBUG)
+    await this.instance!.put('/me/player/play', {
+      context_uri: `spotify:playlist:${playlistID}`
+    })
+  }
+
+  async playTrack(trackID: string, playlistID?: string) {
+    log(
+      `Playing track: ${trackID}${playlistID ? ` from playlist: ${playlistID}` : ''}`,
+      'Spotify',
+      LogLevel.DEBUG
+    )
+    try {
+      let requestBody = {}
+
+      if (playlistID) {
+        requestBody = {
+          context_uri: `spotify:playlist:${playlistID}`,
+          offset: {
+            uri: `spotify:track:${trackID}`
+          },
+          position_ms: 0
+        }
+      } else {
+        requestBody = {
+          uris: [`spotify:track:${trackID}`],
+          position_ms: 0
+        }
+      }
+
+      const res = await this.instance!.put('/me/player/play', requestBody)
+
+      if (res.status >= 200 && res.status < 300) {
+        log(
+          `Successfully started playing track: ${trackID}`,
+          'Spotify',
+          LogLevel.DEBUG
+        )
+        return { success: true, trackID, playlistID }
+      } else {
+        log(
+          `Failed to play track: ${trackID}. Status: ${res.status}`,
+          'Spotify',
+          LogLevel.ERROR
+        )
+        return {
+          success: false,
+          error: `API returned status ${res.status}`
+        }
+      }
+    } catch (error) {
+      log(`Error playing track: ${error}`, 'Spotify', LogLevel.ERROR)
+      return { success: false, error: `${error}` }
+    }
+  }
+
+  async getPlaylistTracks(
+    playlistID: string,
+    offset: number = 0,
+    limit: number = 50
+  ) {
+    try {
+      let res = await this.instance!.get(
+        `/playlists/${playlistID}/tracks`,
+        {
+          params: {
+            offset: offset,
+            limit: limit
+          }
+        }
+      )
+
+      if (res.status !== 200 || !res.data) {
+        log(
+          `Failed to get playlist tracks: ${res.status}`,
+          'Spotify',
+          LogLevel.ERROR
+        )
+        return null
+      }
+
+      const processedPlaylistTracks: any[] = []
+      const now = Date.now()
+      for (const item of res.data.items) {
+        log(
+          `Processing track: ${JSON.stringify(item)}`,
+          'Spotify',
+          LogLevel.DEBUG
+        )
+        try {
+          const processedItem = { ...item }
+          item.track.artists = item.track.artists.map(
+            (artist: { name: string }) => artist.name
+          )
+          const imageUrl = item.track.album.images[2].url
+          const trackid = item.track.id
+          const cachedImage = this.playlistImageCache.get(trackid)
+          if (
+            cachedImage &&
+            now - cachedImage.timestamp < this.playlistImageCacheExpiration
+          ) {
+            log(
+              `Using cached image for track ${trackid}`,
+              'Spotify',
+              LogLevel.DEBUG
+            )
+            processedItem.track.image = cachedImage.data
+          } else {
+            // Fetch image if not cached or expired
+            log(
+              `Fetching image for track ${trackid}`,
+              'Spotify',
+              LogLevel.DEBUG
+            )
+            const imageRes = await axios.get(imageUrl, {
+              responseType: 'arraybuffer'
+            })
+
+            // Add the image as base64 data with data URL prefix
+            const imageData = `data:image/jpeg;base64,${Buffer.from(imageRes.data).toString('base64')}`
+            processedItem.track.image = imageData
+
+            // Cache the image
+            this.playlistImageCache.set(trackid, {
+              data: imageData,
+              timestamp: now
+            })
+          }
+          processedPlaylistTracks.push(processedItem.track)
+        } catch (itemErr) {
+          log(
+            `Error processing playlist track item: ${itemErr}`,
+            'Spotify',
+            LogLevel.ERROR
+          )
+          // Still add the item without image in case of error
+          processedPlaylistTracks.push(item.track)
+        }
+      }
+      res.data.items = processedPlaylistTracks
+      // Save the updated cache
+      this.savePlaylistImageCache()
+      return res.data
+    } catch (error) {
+      log(
+        `Error in getPlaylistTracks: ${error}`,
+        'Spotify',
+        LogLevel.ERROR
+      )
+      return null
     }
   }
 }

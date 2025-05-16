@@ -118,6 +118,30 @@ class PlaybackManager extends (EventEmitter as new () => TypedEmitter<PlaybackHa
     if (!this.currentHandler) return null
     return this.currentHandler.getLyrics()
   }
+
+  async getPlaylists(offset: number): Promise<any> {
+    if (!this.currentHandler) return null
+    return this.currentHandler.getPlaylists(offset)
+  }
+
+  async getPlaylistTracks(
+    playlistID: string,
+    offset?: number,
+    limit?: number
+  ): Promise<any> {
+    if (!this.currentHandler) return null
+    return this.currentHandler.getPlaylistTracks(playlistID, offset, limit)
+  }
+
+  async playPlaylist(playlistID: string): Promise<void> {
+    if (!this.currentHandler) return
+    return this.currentHandler.playPlaylist(playlistID)
+  }
+
+  async playTrack(trackID: string, playlistID?: string): Promise<any> {
+    if (!this.currentHandler) return null
+    return this.currentHandler.playTrack(trackID, playlistID)
+  }
 }
 
 export const playbackManager = new PlaybackManager()
