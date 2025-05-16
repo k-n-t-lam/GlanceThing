@@ -114,6 +114,9 @@ const Developer: React.FC = () => {
       <h2>Links</h2>
       <div className={styles.buttons}>
         <button onClick={() => navigate('/setup?step=3')}>Setup</button>
+        <button onClick={() => window.api.openDevTools()}>
+          Open DevTools
+        </button>
       </div>
     </div>
   )

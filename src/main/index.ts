@@ -226,7 +226,8 @@ enum IPCHandler {
   DownloadLogs = 'downloadLogs',
   UploadScreensaverImage = 'uploadScreensaverImage',
   RemoveScreensaverImage = 'removeScreensaverImage',
-  HasCustomScreensaverImage = 'hasCustomScreensaverImage'
+  HasCustomScreensaverImage = 'hasCustomScreensaverImage',
+  OpenDevTools = 'openDevTools'
 }
 
 async function setupIpcHandlers() {
@@ -451,6 +452,12 @@ async function setupIpcHandlers() {
 
   ipcMain.handle(IPCHandler.HasCustomScreensaverImage, async () => {
     return hasCustomScreensaverImage()
+  })
+
+  ipcMain.handle(IPCHandler.OpenDevTools, () => {
+    if (mainWindow) {
+      mainWindow.webContents.openDevTools()
+    }
   })
 }
 
