@@ -58,14 +58,9 @@ const Playback: React.FC<PlaybackProps> = ({ onStepComplete }) => {
       </div>
       <div className={styles.setup} key={selectedProvider}>
         {selectedProvider === 'none' ? (
-          <None onStepComplete={() => setState(State.Complete)} />
+          <None onStepComplete={complete} />
         ) : selectedProvider === 'spotify' ? (
           <Spotify onStepComplete={complete} />
-        ) : null}
-      </div>
-      <div className={styles.buttons}>
-        {state === State.Complete ? (
-          <button onClick={complete}>Continue</button>
         ) : null}
       </div>
     </div>
