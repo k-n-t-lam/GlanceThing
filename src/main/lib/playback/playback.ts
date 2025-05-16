@@ -32,8 +32,11 @@ class PlaybackManager extends (EventEmitter as new () => TypedEmitter<PlaybackHa
 
     const handler = this.getHandler(handlerName)
     const config = await getPlaybackHandlerConfig(handlerName)
-    if (!config) {
-      this.emit('error', new Error('No config found for handler'))
+    if (!handler.validateConfig(config)) {
+      this.emit(
+        'error',
+        new Error(`Invalid config for handler ${handlerName}`)
+      )
       return setStorageValue('playbackHandler', 'none')
     }
 
