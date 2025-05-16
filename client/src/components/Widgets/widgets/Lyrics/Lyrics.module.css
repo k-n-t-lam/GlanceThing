@@ -4,7 +4,7 @@
   display: flex;
   flex-direction: column;
   position: relative;
-  border-radius: 20px;
+  border-radius: 15px;
   background: var(--lyrics-color-background);
 }
 
@@ -94,8 +94,6 @@
   will-change: scroll-position;
   transform: translateZ(0);
   contain: paint style;
-  touch-action: pan-y;
-  scroll-snap-type: y;
 }
 
 .lyricsContent::-webkit-scrollbar {
