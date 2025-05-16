@@ -2,7 +2,7 @@ import { useContext, useEffect, useState } from 'react'
 
 import { AppBlurContext } from '@/contexts/AppBlurContext.tsx'
 import { SocketContext } from '@/contexts/SocketContext.tsx'
-import { AppSettingsContext } from '@/contexts/AppSettingsContext.tsx'
+import { AppStateContext } from '@/contexts/AppStateContext.tsx'
 
 import FullescreenPlayer from './components/FullscreenPlayer/FullscreenPlayer.tsx'
 import LoadingScreen from '@/components/LoadingScreen/LoadingScreen.tsx'
@@ -16,7 +16,7 @@ import styles from './App.module.css'
 const App: React.FC = () => {
   const { blurred } = useContext(AppBlurContext)
   const { ready } = useContext(SocketContext)
-  const { showStatusBar } = useContext(AppSettingsContext)
+  const { showStatusBar } = useContext(AppStateContext)
   const [playerShown, setPlayerShown] = useState(false)
 
   useEffect(() => {

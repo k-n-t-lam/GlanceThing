@@ -1,15 +1,17 @@
 import { useContext } from 'react'
-import { TimeContext } from '@/contexts/TimeContext'
-import { WeatherContext } from '@/contexts/WeatherContext'
-import { AppSettingsContext } from '@/contexts/AppSettingsContext'
+import { AppStateContext } from '@/contexts/AppStateContext'
 import styles from './Statusbar.module.css'
 
 const Statusbar: React.FC = () => {
-  const { time, date } = useContext(TimeContext)
-  const { weather, weatherEmoji, temperatureUnit } =
-    useContext(WeatherContext)
-  const { showTimeInStatusBar, showWeatherInStatusBar } =
-    useContext(AppSettingsContext)
+  const {
+    time,
+    date,
+    weather,
+    weatherEmoji,
+    temperatureUnit,
+    showTimeInStatusBar,
+    showWeatherInStatusBar
+  } = useContext(AppStateContext)
 
   return (
     <div className={styles.statusbar}>

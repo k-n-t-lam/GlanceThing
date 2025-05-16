@@ -6,7 +6,7 @@ import {
   useMemo,
   useCallback
 } from 'react'
-import { AppSettingsContext } from '@/contexts/AppSettingsContext.tsx'
+import { AppStateContext } from '@/contexts/AppStateContext.tsx'
 import { MediaContext } from '@/contexts/MediaContext.tsx'
 import { debouncedFunction } from '@/lib/utils.ts'
 
@@ -32,7 +32,7 @@ const Widgets: React.FC = () => {
     showLyricsWidget,
     showStatusBar,
     autoSwitchToLyrics
-  } = useContext(AppSettingsContext)
+  } = useContext(AppStateContext)
   const { playerData, lyricsData } = useContext(MediaContext)
   const widgetsRef = useRef<HTMLDivElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)

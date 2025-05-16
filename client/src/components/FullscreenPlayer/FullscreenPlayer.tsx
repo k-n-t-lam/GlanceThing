@@ -8,7 +8,7 @@ import React, {
 } from 'react'
 
 import { MediaContext } from '@/contexts/MediaContext.tsx'
-import { AppSettingsContext } from '@/contexts/AppSettingsContext.tsx'
+import { AppStateContext } from '@/contexts/AppStateContext.tsx'
 
 import styles from './FullescreenPlayer.module.css'
 
@@ -23,7 +23,7 @@ const FullescreenPlayer: React.FC<FullescreenPlayerProps> = ({
 }) => {
   const { image, playerData, playerDataRef, actions } =
     useContext(MediaContext)
-  const { showNothingPlayingNote } = useContext(AppSettingsContext)
+  const { showNothingPlayingNote } = useContext(AppStateContext)
 
   const playerRef = useRef<HTMLDivElement>(null)
 

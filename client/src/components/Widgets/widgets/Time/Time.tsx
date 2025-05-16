@@ -1,14 +1,14 @@
 import { useContext } from 'react'
 import BaseWidget from '../BaseWidget/BaseWidget.tsx'
 import styles from './Time.module.css'
-import { TimeContext } from '@/contexts/TimeContext.tsx'
+import { AppStateContext } from '@/contexts/AppStateContext.tsx'
 
 interface TimeProps {
   visible: boolean
 }
 
 const Time: React.FC<TimeProps> = ({ visible }) => {
-  const { time, date } = useContext(TimeContext)
+  const { time, date } = useContext(AppStateContext)
 
   return (
     <BaseWidget className={styles.timedate} visible={visible}>

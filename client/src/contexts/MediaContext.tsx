@@ -10,7 +10,7 @@ import React, {
 import { SocketContext } from './SocketContext.tsx'
 
 import { PlaybackData, RepeatMode } from '@/types/Playback.js'
-import { AppSettingsContext } from './AppSettingsContext.tsx'
+import { AppStateContext } from './AppStateContext.tsx'
 
 interface LyricsLine {
   startTimeMs: string
@@ -82,7 +82,7 @@ interface MediaContextProviderProps {
 
 const MediaContextProvider = ({ children }: MediaContextProviderProps) => {
   const { ready, socket } = useContext(SocketContext)
-  const { showLyricsWidget } = useContext(AppSettingsContext)
+  const { showLyricsWidget } = useContext(AppStateContext)
   const socketRef = useRef<WebSocket | null>(null)
 
   const [playerData, setPlayerData] = useState<PlaybackData | null>(null)

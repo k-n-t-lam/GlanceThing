@@ -1,16 +1,15 @@
+import { HandlerFunction } from '../../types/WebSocketHandler.js'
 import { updateWeather } from '../weather.js'
-
-import { HandlerAction } from '../../types/WebSocketHandler.js'
 
 export const name = 'weather'
 
-export const hasActions = true
+export const hasActions = false
 
-export const actions: HandlerAction[] = [
-  {
-    action: 'refresh',
-    handle: async () => {
-      await updateWeather()
-    }
-  }
-]
+export const handle: HandlerFunction = async ws => {
+  ws.send(
+    JSON.stringify({
+      type: 'weather',
+      data: updateWeather()
+    })
+  )
+}

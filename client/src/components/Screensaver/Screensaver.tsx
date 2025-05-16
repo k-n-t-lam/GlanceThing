@@ -2,8 +2,7 @@ import React, { useCallback, useContext, useEffect, useState } from 'react'
 
 import { SleepState } from '@/contexts/SleepContext.tsx'
 import { SocketContext } from '@/contexts/SocketContext.tsx'
-import { AppSettingsContext } from '@/contexts/AppSettingsContext.tsx'
-import { TimeContext } from '@/contexts/TimeContext'
+import { AppStateContext } from '@/contexts/AppStateContext'
 
 import styles from './Screensaver.module.css'
 
@@ -15,9 +14,8 @@ const MAX_IMAGE_SIZE = 5 * 1024 * 1024 // 5MB
 
 const Screensaver: React.FC<ScreensaverProps> = ({ type }) => {
   const { ready, socket } = useContext(SocketContext)
-  const { showTimeOnScreensaver, screensaverTimePosition } =
-    useContext(AppSettingsContext)
-  const { time, date } = useContext(TimeContext)
+  const { time, date, showTimeOnScreensaver, screensaverTimePosition } =
+    useContext(AppStateContext)
 
   const [loaded, setLoaded] = useState(false)
   const [customImage, setCustomImage] = useState<string | null>(null)

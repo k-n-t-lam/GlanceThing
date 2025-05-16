@@ -1,5 +1,5 @@
 import { useContext } from 'react'
-import { WeatherContext } from '@/contexts/WeatherContext.tsx'
+import { AppStateContext } from '@/contexts/AppStateContext.tsx'
 import BaseWidget from '../BaseWidget/BaseWidget.tsx'
 
 import styles from './Weather.module.css'
@@ -11,20 +11,15 @@ interface WeatherProps {
 const Weather: React.FC<WeatherProps> = ({ visible }) => {
   const {
     weather,
-    loading,
-    error,
-    refreshWeather,
+    weatherLoading: loading,
+    weatherError: error,
     weatherEmoji,
     weatherDescription,
     temperatureUnit
-  } = useContext(WeatherContext)
+  } = useContext(AppStateContext)
 
   return (
-    <BaseWidget
-      className={styles.weather}
-      visible={visible}
-      onClick={refreshWeather}
-    >
+    <BaseWidget className={styles.weather} visible={visible}>
       {weather ? (
         <div className={styles.container}>
           <div className={styles.location}>{weather.location}</div>
@@ -48,9 +43,9 @@ const Weather: React.FC<WeatherProps> = ({ visible }) => {
       ) : error ? (
         <div className={styles.error}>
           <div>Unable to get weather data</div>
-          <button className={styles.retryButton} onClick={refreshWeather}>
-            Retry
-          </button>
+          <div className={styles.errorNote}>
+            Data will refresh automatically
+          </div>
         </div>
       ) : loading ? (
         <div className={styles.loading}>Loading weather data...</div>

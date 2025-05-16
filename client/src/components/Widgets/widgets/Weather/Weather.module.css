@@ -66,16 +66,12 @@
   flex: 1;
 }
 
-.retryButton {
+.errorNote {
   background-color: rgba(255, 255, 255, 0.2);
   color: white;
   border: none;
   padding: 8px 16px;
   border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.retryButton:hover {
-  background-color: rgba(255, 255, 255, 0.3);
+  font-size: 0.9rem;
+  opacity: 0.8;
 }

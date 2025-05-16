@@ -14,12 +14,12 @@ import BaseWidget from '../BaseWidget/BaseWidget.tsx'
 
 import styles from './Player.module.css'
 import { MediaContext } from '@/contexts/MediaContext.tsx'
-import { AppSettingsContext } from '@/contexts/AppSettingsContext.tsx'
+import { AppStateContext } from '@/contexts/AppStateContext.tsx'
 
 const Player: React.FC = () => {
   const { actions, playerData, playerDataRef, image } =
     useContext(MediaContext)
-  const { showNothingPlayingNote } = useContext(AppSettingsContext)
+  const { showNothingPlayingNote } = useContext(AppStateContext)
 
   const playerRef = useRef<HTMLDivElement>(null)
   const imageDivRef = useRef<HTMLDivElement>(null)
