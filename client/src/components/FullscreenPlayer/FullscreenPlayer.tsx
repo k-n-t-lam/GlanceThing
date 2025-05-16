@@ -130,11 +130,15 @@ const FullescreenPlayer: React.FC<FullescreenPlayerProps> = ({
       </button>
       {playerData ? (
         <>
-          <img src={image || ''} alt="" className={styles.background} />
+          <img
+            src={image ?? undefined}
+            alt=""
+            className={styles.background}
+          />
           <div className={styles.track}>
             <div className={styles.cover}>
               {image ? (
-                <img src={image || ''} alt="" />
+                <img src={image} alt="" />
               ) : (
                 <span className="material-icons">music_note</span>
               )}

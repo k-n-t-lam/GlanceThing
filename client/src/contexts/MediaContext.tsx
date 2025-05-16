@@ -11,7 +11,7 @@ import { SocketContext } from './SocketContext.tsx'
 import { PlaybackData, RepeatMode } from '@/types/Playback.js'
 
 interface MediaContextProps {
-  image: string
+  image: string | null
   playerData: PlaybackData | null
   playerDataRef: React.MutableRefObject<PlaybackData | null>
   actions: {
@@ -25,7 +25,7 @@ interface MediaContextProps {
 }
 
 const MediaContext = createContext<MediaContextProps>({
-  image: '',
+  image: null,
   playerData: null,
   playerDataRef: { current: null },
   actions: {
@@ -47,7 +47,7 @@ const MediaContextProvider = ({ children }: MediaContextProviderProps) => {
 
   const [playerData, setPlayerData] = useState<PlaybackData | null>(null)
   const playerDataRef = useRef<PlaybackData | null>(null)
-  const [image, setImage] = useState('')
+  const [image, setImage] = useState<string | null>(null)
 
   useEffect(() => {
     if (ready === true && socket) {
@@ -57,6 +57,7 @@ const MediaContextProvider = ({ children }: MediaContextProviderProps) => {
         const playbackData = data as PlaybackData
 
         if (action === 'image') {
+          if (!data) return setImage(null)
           setImage(`data:image/png;base64,${data}`)
         } else {
           if (!data) return setPlayerData(null)

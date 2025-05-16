@@ -32,12 +32,11 @@ export const actions: HandlerAction[] = [
     action: 'image',
     handle: async ws => {
       const image = await playbackManager.getImage()
-      if (!image) return
       ws.send(
         JSON.stringify({
           type: 'playback',
           action: 'image',
-          data: image.toString('base64')
+          data: image ? image.toString('base64') : null
         })
       )
     }
