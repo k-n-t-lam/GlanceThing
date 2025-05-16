@@ -92,6 +92,11 @@ const Developer: React.FC = () => {
           Forward WebSocketServer
         </button>
       </div>
+      <div className={styles.buttons}>
+        <button onClick={() => window.api.rebootCarThing()}>
+          Reboot CarThing
+        </button>
+      </div>
 
       <h2>Server</h2>
       <div className={styles.buttons}>

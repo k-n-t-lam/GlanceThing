@@ -4,6 +4,7 @@ import * as apps from './apps.js'
 import * as lock from './lock.js'
 import * as ping from './ping.js'
 import * as playback from './playback.js'
+import * as reboot from './reboot.js'
 import * as restore from './restore.js'
 import * as screensaver from './screensaver.js'
 import * as sleep from './sleep.js'
@@ -17,6 +18,7 @@ export const handlers: Handler[] = [
   lock,
   ping,
   playback,
+  reboot,
   restore,
   screensaver,
   sleep,
