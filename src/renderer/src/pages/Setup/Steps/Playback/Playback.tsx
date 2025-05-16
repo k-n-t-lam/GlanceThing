@@ -1,28 +1,19 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 
 import styles from './Playback.module.css'
 
 import Spotify from './providers/Spotify/Spotify.js'
 import None from './providers/None/None.js'
+import Native from './providers/Native/Native.js'
 
 interface PlaybackProps {
   onStepComplete: () => void
 }
 
-enum State {
-  Pending,
-  Complete
-}
-
 const Playback: React.FC<PlaybackProps> = ({ onStepComplete }) => {
-  const [state, setState] = useState<State>(0)
   const [selectedProvider, setSelectedProvider] = useState<string | null>(
     null
   )
-
-  useEffect(() => {
-    setState(State.Pending)
-  }, [selectedProvider])
 
   async function complete() {
     await window.api.setStorageValue('playbackHandler', selectedProvider)
@@ -55,12 +46,22 @@ const Playback: React.FC<PlaybackProps> = ({ onStepComplete }) => {
           <span className="material-icons">rss_feed</span>
           Spotify
         </button>
+        <button
+          className={styles.provider}
+          onClick={() => setSelectedProvider('native')}
+          data-selected={selectedProvider === 'native'}
+        >
+          <span className="material-icons">settings_input_component</span>
+          Native
+        </button>
       </div>
       <div className={styles.setup} key={selectedProvider}>
         {selectedProvider === 'none' ? (
           <None onStepComplete={complete} />
         ) : selectedProvider === 'spotify' ? (
           <Spotify onStepComplete={complete} />
+        ) : selectedProvider === 'native' ? (
+          <Native onStepComplete={complete} />
         ) : null}
       </div>
     </div>

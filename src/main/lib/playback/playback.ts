@@ -4,6 +4,7 @@ import EventEmitter from 'events'
 import { BasePlaybackHandler } from './BasePlaybackHandler.js'
 
 import spotify from './spotify.js'
+import native from './native.js'
 
 import {
   PlaybackData,
@@ -13,7 +14,7 @@ import {
 import { log } from '../utils.js'
 import { getPlaybackHandlerConfig, setStorageValue } from '../storage.js'
 
-const handlers: BasePlaybackHandler[] = [spotify]
+const handlers: BasePlaybackHandler[] = [spotify, native]
 
 class PlaybackManager extends (EventEmitter as new () => TypedEmitter<PlaybackHandlerEvents>) {
   private currentHandler: BasePlaybackHandler | null = null
