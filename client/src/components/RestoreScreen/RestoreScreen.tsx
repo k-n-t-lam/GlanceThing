@@ -11,7 +11,7 @@ const RestoreScreen: React.FC<RestoreScreenProps> = ({ message }) => {
     <div className={styles.restore}>
       <div className={styles.background}></div>
       <Loader />
-      <p>{message}...</p>
+      <p>{message}</p>
     </div>
   )
 }
