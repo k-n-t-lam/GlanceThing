@@ -277,7 +277,7 @@ const MediaContextProvider = ({ children }: MediaContextProviderProps) => {
         console.error('Error parsing message:', err)
       }
     },
-    [hasTrackChanged, showLyricsWidget, socket, playerData]
+    [hasTrackChanged, showLyricsWidget, socket]
   )
 
   useEffect(() => {
