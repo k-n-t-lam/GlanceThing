@@ -3,8 +3,7 @@ import {
   useEffect,
   useRef,
   useCallback,
-  useState,
-  use
+  useState
 } from 'react'
 import { SocketContext } from '@/contexts/SocketContext.tsx'
 import styles from './PlaylistsScreen.module.css'
