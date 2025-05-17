@@ -326,7 +326,13 @@ async function setupIpcHandlers() {
   }
 
   async function interval() {
-    await carThingStateUpdate()
+    await carThingStateUpdate().catch(err => {
+      log(
+        `Error updating state: ${err.message}`,
+        'CarThingState',
+        LogLevel.ERROR
+      )
+    })
 
     setTimeout(interval, 5000)
   }
