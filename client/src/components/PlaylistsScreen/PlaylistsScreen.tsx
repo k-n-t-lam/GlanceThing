@@ -591,7 +591,6 @@ const PlaylistsScreen: React.FC<PlaylistsScreenProps> = ({
                   playlistsLoading &&
                   playlistsOffset < playlistsTotal && (
                     <div className={styles.loadingMore}>
-                      <Loader />
                       <p>Loading more playlists...</p>
                     </div>
                   )}
