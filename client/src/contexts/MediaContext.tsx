@@ -241,8 +241,6 @@ const MediaContextProvider = ({ children }: MediaContextProviderProps) => {
           setPlaylistsLoading(false)
           return
         }
-        console.log('Received playback data:', data)
-        console.log('Check Playdata:', playerData)
 
         if (!data) {
           setPlayerData(null)
@@ -271,8 +269,7 @@ const MediaContextProvider = ({ children }: MediaContextProviderProps) => {
             prevData.repeat !== data.repeat ||
             prevData.track.duration.current !==
               data.track.duration.current ||
-            prevData.track.duration.total !==
-              data.track.duration.total
+            prevData.track.duration.total !== data.track.duration.total
 
           return hasChanged ? data : prevData
         })
@@ -280,7 +277,7 @@ const MediaContextProvider = ({ children }: MediaContextProviderProps) => {
         console.error('Error parsing message:', err)
       }
     },
-    [hasTrackChanged, showLyricsWidget, socket]
+    [hasTrackChanged, showLyricsWidget, socket, playerData]
   )
 
   useEffect(() => {
@@ -290,7 +287,6 @@ const MediaContextProvider = ({ children }: MediaContextProviderProps) => {
     }
     socketRef.current = socket
     if (ready === true && socket) {
-      socket.send(JSON.stringify({ type: 'playback' }))
       socket.addEventListener('message', handleSocketMessage)
       const refreshInterval = setInterval(() => {
         if (socket && socket.readyState === WebSocket.OPEN) {
@@ -310,6 +306,16 @@ const MediaContextProvider = ({ children }: MediaContextProviderProps) => {
       socketRef.current = null
     }
   }, [ready, socket, handleSocketMessage])
+
+  useEffect(() => {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(
+        JSON.stringify({
+          type: 'playback'
+        })
+      )
+    }
+  }, [socket])
 
   useEffect(() => {
     if (!playerData || !playerData.isPlaying) return

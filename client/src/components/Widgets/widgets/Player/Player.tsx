@@ -588,7 +588,7 @@ const Player: React.FC = () => {
       onKeyDown={onKeyDown}
       ref={playerRef}
     >
-      {playerData && playerData.track? (
+      {playerData && playerData.track ? (
         <>
           <button onMouseDown={handleCoverPress} className={styles.cover}>
             <div

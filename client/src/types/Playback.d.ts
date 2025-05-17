@@ -25,7 +25,7 @@ export interface PlaybackData {
       total: number
     }
   }
-  supportedActions: Action[],
+  supportedActions: Action[]
   context?: {
     type?: string
     uri?: string

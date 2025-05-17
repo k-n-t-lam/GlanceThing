@@ -177,39 +177,36 @@ const Widgets: React.FC = () => {
     showLyricsWidget
   ])
 
-  const navigateToSection = useCallback(
-    (sectionIndex: number) => {
-      setActiveSection(sectionIndex + 1)
+  const navigateToSection = useCallback((sectionIndex: number) => {
+    setActiveSection(sectionIndex + 1)
+
+    setTimeout(() => {
+      if (!scrollRef.current) {
+        console.log('Scroll ref is null')
+        return
+      }
+
+      const sectionWidth = scrollRef.current.clientWidth
+      scrollRef.current.scrollTo({
+        left: sectionIndex * sectionWidth,
+        behavior: 'smooth'
+      })
 
       setTimeout(() => {
-        if (!scrollRef.current) {
-          console.log('Scroll ref is null')
-          return
+        const sectionElement = document.getElementById(
+          `section-${sectionIndex + 1}`
+        )
+        if (sectionElement) {
+          const firstSectionWidget = sectionElement.querySelector(
+            '#widget'
+          ) as HTMLDivElement
+          if (firstSectionWidget) firstSectionWidget.focus()
+        } else {
+          console.log(`Couldn't find section-${sectionIndex + 1}`)
         }
-
-        const sectionWidth = scrollRef.current.clientWidth
-        scrollRef.current.scrollTo({
-          left: sectionIndex * sectionWidth,
-          behavior: 'smooth'
-        })
-
-        setTimeout(() => {
-          const sectionElement = document.getElementById(
-            `section-${sectionIndex + 1}`
-          )
-          if (sectionElement) {
-            const firstSectionWidget = sectionElement.querySelector(
-              '#widget'
-            ) as HTMLDivElement
-            if (firstSectionWidget) firstSectionWidget.focus()
-          } else {
-            console.log(`Couldn't find section-${sectionIndex + 1}`)
-          }
-        }, 100)
-      }, 10)
-    },
-    [activeSection]
-  )
+      }, 100)
+    }, 10)
+  }, [])
 
   useEffect(() => {
     if (activeSection > sections.length) {

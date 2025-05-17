@@ -193,9 +193,6 @@ const PlaylistsScreen: React.FC<PlaylistsScreenProps> = ({
       actions.getPlaylists(0)
       setPlaylistsLoading(true)
     }
-    if (playerData?.context?.type === 'playlist'){
-      setCurrentPlaylistId(playerData?.context?.uri?.replace('spotify:playlist:', '') ?? '')
-    }
   }, [
     ready,
     socket,
@@ -204,10 +201,17 @@ const PlaylistsScreen: React.FC<PlaylistsScreenProps> = ({
     playlistsLoading,
     actions,
     setPlaylistsOffset,
-    setPlaylistsLoading,
-    setCurrentPlaylistId
+    setPlaylistsLoading
   ])
-  
+
+  useEffect(() => {
+    if (playerData?.context?.type === 'playlist') {
+      setCurrentPlaylistId(
+        playerData?.context?.uri?.replace('spotify:playlist:', '') ?? ''
+      )
+    }
+  }, [playerData])
+
   // Focus container when shown
   useEffect(() => {
     if (shown) {
@@ -330,8 +334,11 @@ const PlaylistsScreen: React.FC<PlaylistsScreenProps> = ({
   )
 
   useEffect(() => {
-    if(currentPlaylistId && playlistsData){
-      let currentPlaylist = playlistsData?.find(playlist => playlist.id == currentPlaylistId )
+    if (selectedPlaylist) return
+    if (currentPlaylistId && playlistsData) {
+      const currentPlaylist = playlistsData?.find(
+        playlist => playlist.id == currentPlaylistId
+      )
       if (currentPlaylist) {
         setSelectedPlaylist(currentPlaylist)
         setTracksLoading(true)
@@ -359,7 +366,13 @@ const PlaylistsScreen: React.FC<PlaylistsScreenProps> = ({
         }
       }
     }
-  },[currentPlaylistId, playlistsData, setSelectedPlaylist])
+  }, [
+    selectedPlaylist,
+    currentPlaylistId,
+    playlistsData,
+    setSelectedPlaylist,
+    socket
+  ])
 
   // Handle track clicks
   const handleTrackClick = useCallback(
@@ -558,7 +571,9 @@ const PlaylistsScreen: React.FC<PlaylistsScreenProps> = ({
                       onClick={() => handlePlaylistClick(playlist)}
                     >
                       <div className={styles.playlistImage}>
-                        {playlist.image && <img src={playlist.image} alt={playlist.name} />}
+                        {playlist.image && (
+                          <img src={playlist.image} alt={playlist.name} />
+                        )}
                       </div>
                       <div className={styles.playlistInfo}>
                         <h3 className={styles.playlistTitle}>
@@ -576,6 +591,7 @@ const PlaylistsScreen: React.FC<PlaylistsScreenProps> = ({
                   playlistsLoading &&
                   playlistsOffset < playlistsTotal && (
                     <div className={styles.loadingMore}>
+                      <Loader />
                       <p>Loading more playlists...</p>
                     </div>
                   )}
@@ -661,7 +677,9 @@ const PlaylistsScreen: React.FC<PlaylistsScreenProps> = ({
                           )}
                         </div>
                         <div className={styles.trackImage}>
-                          {track.image && <img src={track.image} alt={track.name} />}
+                          {track.image && (
+                            <img src={track.image} alt={track.name} />
+                          )}
                         </div>
                         <div className={styles.trackInfo}>
                           <h4 className={styles.trackName}>
