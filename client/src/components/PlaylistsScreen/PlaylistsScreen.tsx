@@ -3,7 +3,8 @@ import {
   useEffect,
   useRef,
   useCallback,
-  useState
+  useState,
+  use
 } from 'react'
 import { SocketContext } from '@/contexts/SocketContext.tsx'
 import styles from './PlaylistsScreen.module.css'
@@ -88,6 +89,7 @@ const PlaylistsScreen: React.FC<PlaylistsScreenProps> = ({
 
   // Track which playlists are newly loaded
   const [newlyLoadedIds, setNewlyLoadedIds] = useState<string[]>([])
+  const [currentPlaylistId, setCurrentPlaylistId] = useState<string>('')
 
   // Previous playlists count to detect new additions
   const prevPlaylistsLengthRef = useRef<number>(0)
@@ -192,6 +194,9 @@ const PlaylistsScreen: React.FC<PlaylistsScreenProps> = ({
       actions.getPlaylists(0)
       setPlaylistsLoading(true)
     }
+    if (playerData?.context?.type === 'playlist'){
+      setCurrentPlaylistId(playerData?.context?.uri?.replace('spotify:playlist:', '') ?? '')
+    }
   }, [
     ready,
     socket,
@@ -200,9 +205,10 @@ const PlaylistsScreen: React.FC<PlaylistsScreenProps> = ({
     playlistsLoading,
     actions,
     setPlaylistsOffset,
-    setPlaylistsLoading
+    setPlaylistsLoading,
+    setCurrentPlaylistId
   ])
-
+  
   // Focus container when shown
   useEffect(() => {
     if (shown) {
@@ -323,6 +329,38 @@ const PlaylistsScreen: React.FC<PlaylistsScreenProps> = ({
     },
     [clickCount, clickTimer, socket, actions]
   )
+
+  useEffect(() => {
+    if(currentPlaylistId && playlistsData){
+      let currentPlaylist = playlistsData?.find(playlist => playlist.id == currentPlaylistId )
+      if (currentPlaylist) {
+        setSelectedPlaylist(currentPlaylist)
+        setTracksLoading(true)
+        // Reset tracks pagination
+        setTracksPagination({
+          offset: 0,
+          limit: 50,
+          total: 0,
+          hasMore: false
+        })
+
+        // Call API to get the tracks for this playlist
+        if (socket) {
+          socket.send(
+            JSON.stringify({
+              type: 'playback',
+              action: 'playlistTracks',
+              data: {
+                playlistID: currentPlaylist.id,
+                offset: 0,
+                limit: 50
+              }
+            })
+          )
+        }
+      }
+    }
+  },[currentPlaylistId, playlistsData, setSelectedPlaylist])
 
   // Handle track clicks
   const handleTrackClick = useCallback(
@@ -521,7 +559,7 @@ const PlaylistsScreen: React.FC<PlaylistsScreenProps> = ({
                       onClick={() => handlePlaylistClick(playlist)}
                     >
                       <div className={styles.playlistImage}>
-                        <img src={playlist.image} alt={playlist.name} />
+                        {playlist.image && <img src={playlist.image} alt={playlist.name} />}
                       </div>
                       <div className={styles.playlistInfo}>
                         <h3 className={styles.playlistTitle}>
@@ -624,7 +662,7 @@ const PlaylistsScreen: React.FC<PlaylistsScreenProps> = ({
                           )}
                         </div>
                         <div className={styles.trackImage}>
-                          <img src={track.image} alt={track.name} />
+                          {track.image && <img src={track.image} alt={track.name} />}
                         </div>
                         <div className={styles.trackInfo}>
                           <h4 className={styles.trackName}>

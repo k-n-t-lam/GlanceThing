@@ -130,7 +130,7 @@ const FullescreenPlayer: React.FC<FullescreenPlayerProps> = ({
       >
         <span className="material-icons">keyboard_arrow_down</span>
       </button>
-      {playerData ? (
+      {playerData && playerData.track ? (
         <>
           <img
             src={image ?? undefined}

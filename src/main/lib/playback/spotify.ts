@@ -258,6 +258,7 @@ export function filterData(
   const {
     is_playing,
     item,
+    context,
     progress_ms,
     currently_playing_type,
     device,
@@ -293,6 +294,10 @@ export function filterData(
         },
         name: item.name
       },
+      context: {
+        uri: context.uri,
+        type: context.type
+      },
       supportedActions: [
         ...defaultSupportedActions,
         ...((device.supports_volume ? ['volume'] : []) as Action[])
@@ -315,6 +320,10 @@ export function filterData(
           total: item.duration_ms
         },
         name: item.name
+      },
+      context: {
+        uri: context.uri,
+        type: context.type
       },
       supportedActions: [
         ...defaultSupportedActions,

@@ -25,6 +25,10 @@ export type PlaybackData = {
       total: number
     }
   }
+  context: {
+    type: string
+    uri: string
+  }
   supportedActions: Action[]
 } | null
 

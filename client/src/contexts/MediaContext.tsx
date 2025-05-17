@@ -141,7 +141,7 @@ const MediaContextProvider = ({ children }: MediaContextProviderProps) => {
     )
       return
 
-    const currentTime = playerData.track.duration.current
+    const currentTime = playerData.track?.duration.current
 
     let foundIndex = -1
     const lines = lyricsData.lyrics.lines
@@ -241,6 +241,8 @@ const MediaContextProvider = ({ children }: MediaContextProviderProps) => {
           setPlaylistsLoading(false)
           return
         }
+        console.log('Received playback data:', data)
+        console.log('Check Playdata:', playerData)
 
         if (!data) {
           setPlayerData(null)
@@ -248,8 +250,7 @@ const MediaContextProvider = ({ children }: MediaContextProviderProps) => {
           return
         }
 
-        const playbackData = data as PlaybackData
-        if (hasTrackChanged(playbackData)) {
+        if (hasTrackChanged(data)) {
           socket?.send(
             JSON.stringify({ type: 'playback', action: 'image' })
           )
@@ -261,19 +262,19 @@ const MediaContextProvider = ({ children }: MediaContextProviderProps) => {
         }
 
         setPlayerData(prevData => {
-          if (!prevData) return playbackData
+          if (!prevData) return data
           const hasChanged =
-            hasTrackChanged(playbackData) ||
-            prevData.isPlaying !== playbackData.isPlaying ||
-            prevData.volume !== playbackData.volume ||
-            prevData.shuffle !== playbackData.shuffle ||
-            prevData.repeat !== playbackData.repeat ||
+            hasTrackChanged(data) ||
+            prevData.isPlaying !== data.isPlaying ||
+            prevData.volume !== data.volume ||
+            prevData.shuffle !== data.shuffle ||
+            prevData.repeat !== data.repeat ||
             prevData.track.duration.current !==
-              playbackData.track.duration.current ||
+              data.track.duration.current ||
             prevData.track.duration.total !==
-              playbackData.track.duration.total
+              data.track.duration.total
 
-          return hasChanged ? playbackData : prevData
+          return hasChanged ? data : prevData
         })
       } catch (err) {
         console.error('Error parsing message:', err)
