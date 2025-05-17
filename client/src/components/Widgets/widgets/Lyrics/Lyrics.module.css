@@ -6,6 +6,8 @@
   position: relative;
   border-radius: 15px;
   background: var(--lyrics-color-background);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
 }
 
 .lyricsTopPadding,
@@ -59,6 +61,8 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+  color: #fff;
 }
 
 .artist {
@@ -69,6 +73,8 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  color: #ddd;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .emptyLyrics {
@@ -83,7 +89,7 @@
   align-items: self-start;
   overflow-y: auto;
   text-align: left;
-  padding: 10px;
+  padding: 16px;
   max-height: 100%;
   scroll-padding: 20px;
   scrollbar-width: thin;

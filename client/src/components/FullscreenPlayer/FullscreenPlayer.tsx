@@ -132,11 +132,9 @@ const FullescreenPlayer: React.FC<FullescreenPlayerProps> = ({
       </button>
       {playerData && playerData.track ? (
         <>
-          <img
-            src={image ?? undefined}
-            alt=""
-            className={styles.background}
-          />
+          {image && (
+            <img src={image} alt="" className={styles.background} />
+          )}
           <div className={styles.track}>
             <div className={styles.cover}>
               {image ? (

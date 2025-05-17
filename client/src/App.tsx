@@ -26,7 +26,7 @@ const App: React.FC = () => {
   } = useContext(AppStateContext)
 
   useEffect(() => {
-    const listener = (e: KeyboardEvent) => {
+    const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && !playlistsShown) {
         setPlayerShown(!playerShown)
       } else if (e.key === 'Escape' && playlistsShown) {
@@ -34,12 +34,12 @@ const App: React.FC = () => {
       }
     }
 
-    document.addEventListener('keydown', listener)
+    document.addEventListener('keydown', handleKeyDown)
 
     return () => {
-      document.removeEventListener('keydown', listener)
+      document.removeEventListener('keydown', handleKeyDown)
     }
-  })
+  }, [playerShown, setPlayerShown, playlistsShown, setPlaylistsShown])
 
   return (
     <>
