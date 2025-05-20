@@ -10,6 +10,12 @@ enum CarThingState {
   Ready = 'ready'
 }
 
+const customClientErrors = {
+  extract_failed: 'Failed to extract custom client',
+  invalid_custom_client:
+    'Invalid custom client uploaded. Please check if the zip file directly contains the client files (such as index.html).'
+}
+
 const Developer: React.FC = () => {
   const navigate = useNavigate()
   const [serverStarted, setServerStarted] = useState(false)
@@ -80,7 +86,12 @@ const Developer: React.FC = () => {
         ) : (
           <button
             onClick={() =>
-              window.api.importCustomClient().then(updateHasCustomClient)
+              window.api.importCustomClient().then(res => {
+                if (typeof res === 'string')
+                  alert(customClientErrors[res] || res)
+
+                updateHasCustomClient()
+              })
             }
           >
             Import Custom Web App

@@ -424,8 +424,8 @@ async function setupIpcHandlers() {
   })
 
   ipcMain.handle(IPCHandler.ImportCustomClient, async () => {
-    const res = await importCustomWebApp()
-    if (!res) return false
+    const res = await importCustomWebApp().catch(err => err.message)
+    if (typeof res === 'string') return res
     await installApp(null)
     return true
   })
