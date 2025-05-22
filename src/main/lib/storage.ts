@@ -5,6 +5,7 @@ import fs from 'fs'
 import { log, LogLevel, random, safeParse, setLogLevel } from './utils.js'
 import { setAutoBrightness, setBrightnessSmooth } from './adb.js'
 import { updateTime } from './time.js'
+import { notifyClientsOfSettingChanges } from './setting.js'
 
 let storage = {}
 
@@ -14,15 +15,42 @@ const storageValueHandlers: Record<string, (value: unknown) => void> = {
       openAtLogin: value as boolean
     })
   },
-  timeFormat: updateTime,
-  dateFormat: updateTime,
+  timeFormat: () => {
+    notifyClientsOfSettingChanges()
+    updateTime()
+  },
+  dateFormat: () => {
+    notifyClientsOfSettingChanges()
+    updateTime()
+  },
   autoBrightness: async value => {
     await setAutoBrightness(null, value as boolean)
   },
   brightness: async value => {
     await setBrightnessSmooth(null, value as number)
   },
-  logLevel: async value => setLogLevel(value as LogLevel)
+  logLevel: async value => setLogLevel(value as LogLevel),
+  showStatusBar: notifyClientsOfSettingChanges,
+  showTimeWidget: notifyClientsOfSettingChanges,
+  showWeatherWidget: notifyClientsOfSettingChanges,
+  showAppsWidget: notifyClientsOfSettingChanges,
+  showControlsWidget: notifyClientsOfSettingChanges,
+  showLyricsWidget: notifyClientsOfSettingChanges,
+  showNothingPlayingNote: notifyClientsOfSettingChanges,
+  showTimeOnScreensaver: notifyClientsOfSettingChanges,
+  screensaverTimePosition: notifyClientsOfSettingChanges,
+  showTempUnit: notifyClientsOfSettingChanges,
+  autoSwitchToLyrics: notifyClientsOfSettingChanges,
+  showTimeInStatusBar: notifyClientsOfSettingChanges,
+  showWeatherInStatusBar: notifyClientsOfSettingChanges,
+  showHighLowTemp: notifyClientsOfSettingChanges,
+  showWeatherDescription: notifyClientsOfSettingChanges,
+  showWeatherIcon: notifyClientsOfSettingChanges,
+  showHumidity: notifyClientsOfSettingChanges,
+  showHighLowTempStatusBar: notifyClientsOfSettingChanges,
+  showWeatherDescriptionStatusBar: notifyClientsOfSettingChanges,
+  showWeatherIconStatusBar: notifyClientsOfSettingChanges,
+  showHumidityStatusBar: notifyClientsOfSettingChanges
 }
 
 function getStoragePath() {
