@@ -81,8 +81,7 @@ function createWindow(): void {
       ? { icon: `${resourceFolder}/icon.png` }
       : {}),
     webPreferences: {
-      preload: join(__dirname, '../preload/index.js'),
-      sandbox: false
+      preload: join(__dirname, '../preload/index.js')
     },
     titleBarStyle: 'hidden',
     resizable: false,

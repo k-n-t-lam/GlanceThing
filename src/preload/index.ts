@@ -1,5 +1,3 @@
-import '@electron-toolkit/preload'
-
 import { contextBridge, ipcRenderer } from 'electron'
 
 interface Shortcut {
