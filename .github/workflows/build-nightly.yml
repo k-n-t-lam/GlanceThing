@@ -1,8 +1,9 @@
-name: Build GlanceThing Release
+name: Build GlanceThing Nightly
 
 on:
-  release:
-    types: [created]
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -25,19 +26,13 @@ jobs:
         run: npm ci
 
       - name: Build the project
-        run: npm run build:win
+        run: npm run build:win:nightly
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: glancething-windows-${{ github.ref_name }}
-          path: ./dist/glancething-*-setup.exe
-
-      - name: Upload to GitHub Releases
-        if: github.event_name == 'release' && github.event.action == 'created'
-        uses: softprops/action-gh-release@v2
-        with:
-          files: ./dist/glancething-*-setup.exe
+          name: glancething-nightly-windows-${{ github.ref_name }}
+          path: ./dist/glancething-nightly-*-setup.exe
 
   build-macos:
     runs-on: macos-latest
@@ -55,19 +50,13 @@ jobs:
         run: npm ci
 
       - name: Build the project
-        run: npm run build:mac
+        run: npm run build:mac:nightly
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: glancething-macos-${{ github.ref_name }}
-          path: ./dist/glancething-*.dmg
-
-      - name: Upload to GitHub Releases
-        if: github.event_name == 'release' && github.event.action == 'created'
-        uses: softprops/action-gh-release@v2
-        with:
-          files: ./dist/glancething-*.dmg
+          name: glancething-nightly-macos-${{ github.ref_name }}
+          path: ./dist/glancething-nightly-*.dmg
 
   build-client:
     runs-on: ubuntu-latest
@@ -90,18 +79,8 @@ jobs:
       - name: Build the project
         run: npm run build
 
-      - name: Zip the build output
-        run: zip -r /tmp/glancething-client-${{ github.ref_name }}.zip ./*
-        working-directory: ./client/dist
-
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: glancething-client-${{ github.ref_name }}
+          name: glancething-nightly-client-${{ github.ref_name }}
           path: ./client/dist
-
-      - name: Upload to GitHub Releases
-        if: github.event_name == 'release' && github.event.action == 'created'
-        uses: softprops/action-gh-release@v2
-        with:
-          files: /tmp/glancething-client-*.zip
