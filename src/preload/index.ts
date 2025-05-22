@@ -115,7 +115,8 @@ const api = {
     ipcRenderer.invoke(IPCHandler.UploadScreensaverImage),
   removeScreensaverImage: () =>
     ipcRenderer.invoke(IPCHandler.RemoveScreensaverImage),
-  openDevTools: () => ipcRenderer.invoke('openDevTools')
+  openDevTools: () => ipcRenderer.invoke('openDevTools'),
+  getChannel: () => ipcRenderer.invoke('getChannel')
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

@@ -1,7 +1,7 @@
-appId: com.bludood.glancething
-productName: GlanceThing
+appId: com.bludood.glancething.nightly
+productName: GlanceThing Nightly
 directories:
-  buildResources: build/stable
+  buildResources: build/nightly
 files:
   - '!**/.vscode/*'
   - '!src/*'
@@ -11,9 +11,9 @@ files:
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
 asarUnpack:
   - resources/common/**
-  - resources/stable/**
+  - resources/nightly/**
 win:
-  executableName: GlanceThing
+  executableName: GlanceThingNightly
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}
@@ -46,3 +46,5 @@ publish:
   url: https://example.com/auto-updates
 electronDownload:
   mirror: https://npmmirror.com/mirrors/electron/
+extraMetadata:
+  name: glancething-nightly

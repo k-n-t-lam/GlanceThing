@@ -9,7 +9,9 @@ import Switch from '@/components/Switch/Switch.js'
 import styles from './Settings.module.css'
 
 import icon from '@/assets/icon.png'
+import iconNightly from '@/assets/icon-nightly.png'
 import { useNavigate } from 'react-router-dom'
+import { ChannelContext } from '@/contexts/ChannelContext.js'
 
 enum Tab {
   General,
@@ -786,6 +788,8 @@ const LogsTab: React.FC = () => {
 
 const AboutTab: React.FC = () => {
   const { devMode, setDevMode } = useContext(DevModeContext)
+  const { channel } = useContext(ChannelContext)
+
   const [version, setVersion] = useState<string | null>(null)
   const [timesClicked, setTimesClicked] = useState(0)
 
@@ -804,9 +808,9 @@ const AboutTab: React.FC = () => {
   return (
     <div className={styles.aboutTab}>
       <div className={styles.app}>
-        <img src={icon} alt="" />
+        <img src={channel === 'nightly' ? iconNightly : icon} alt="" />
         <div className={styles.info}>
-          <h2>GlanceThing</h2>
+          <h2>GlanceThing{channel === 'nightly' ? ' Nightly' : ''}</h2>
           <p
             onClick={() => setTimesClicked(t => (t += 1))}
             className={styles.version}

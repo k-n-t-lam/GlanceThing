@@ -178,3 +178,13 @@ export function getPlatformTar() {
       return 'tar'
   }
 }
+
+export const isNightly = app.getName().endsWith("-nightly")
+
+export const resourceFolder  = path.join(
+  process.env.NODE_ENV === 'development'
+    ? app.getAppPath()
+    : `${path.join(process.resourcesPath, 'app.asar.unpacked')}`,
+  'resources',
+  isNightly ? "nightly" : "stable"
+)
