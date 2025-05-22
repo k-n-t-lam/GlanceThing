@@ -1,5 +1,5 @@
 import { BasePlaybackHandler } from './BasePlaybackHandler.js'
-import { log } from '../utils.js'
+import { log, LogLevel } from '../utils.js'
 
 import { PlaybackData, RepeatMode } from '../../types/Playback.js'
 import { createRequire } from 'node:module'
@@ -104,7 +104,7 @@ function importAddon() {
       try {
         return require('node-nowplaying-win32-x64-msvc')
       } catch (e) {
-        log('Failed to import native addon', 'Native')
+        log(`Failed to import native addon: ${e}`, 'Native')
         return null
       }
     }
@@ -112,7 +112,7 @@ function importAddon() {
     try {
       return require('node-nowplaying-darwin-universal')
     } catch (e) {
-      log('Failed to import native addon', 'Native')
+      log(`Failed to import native addon: ${e}`, 'Native')
       return null
     }
   }
@@ -170,7 +170,9 @@ export function filterData(data: NowPlayingMessage): PlaybackData | null {
   return playbackData
 }
 
-interface NativeConfig {}
+interface NativeConfig {
+  data: unknown
+}
 
 class NativeHandler extends BasePlaybackHandler {
   name: string = 'native'
@@ -210,8 +212,12 @@ class NativeHandler extends BasePlaybackHandler {
   }
 
   async validateConfig(config: unknown): Promise<boolean> {
-    const {} = config as NativeConfig
-
+    const data = config as NativeConfig
+    log(
+      `Validating config ${JSON.stringify(data)}`,
+      'Native',
+      LogLevel.DEBUG
+    )
     return true
   }
 
