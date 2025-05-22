@@ -1,4 +1,10 @@
-import React, { createContext, useEffect, useRef, useState } from 'react'
+import React, {
+  createContext,
+  useCallback,
+  useEffect,
+  useRef,
+  useState
+} from 'react'
 
 import { getSocketPassword } from '@/lib/utils.ts'
 
@@ -25,8 +31,8 @@ const SocketContextProvider = ({
   const ws = useRef<WebSocket | null>(null)
   const [firstLoad, setFirstLoad] = useState(true)
 
-  function connect() {
-    ws.current = new WebSocket('ws://localhost:1337')
+  const connect = useCallback(() => {
+    ws.current = new WebSocket('ws://localhost:8000')
 
     ws.current.onopen = async () => {
       const pass = await getSocketPassword()
@@ -49,7 +55,7 @@ const SocketContextProvider = ({
         connect()
       }, 1000)
     }
-  }
+  }, [])
 
   useEffect(() => {
     connect()
@@ -57,8 +63,7 @@ const SocketContextProvider = ({
     return () => {
       ws.current?.close()
     }
-    // eslint-disable-next-line
-  }, [])
+  }, [connect])
 
   const missedPongsRef = useRef(0)
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -81,7 +86,7 @@ const SocketContextProvider = ({
       }
     }
 
-    const listener = (e: MessageEvent) => {
+    const handleSocketMessage = (e: MessageEvent) => {
       const { type } = JSON.parse(e.data)
       if (type !== 'pong') return
 
@@ -89,13 +94,13 @@ const SocketContextProvider = ({
       missedPongsRef.current = 0
     }
 
-    ws.current!.addEventListener('message', listener)
+    ws.current!.addEventListener('message', handleSocketMessage)
     const interval = setInterval(sendPing, 5000)
 
     return () => {
       clearInterval(interval)
       if (timeoutRef.current) clearTimeout(timeoutRef.current)
-      ws.current!.removeEventListener('message', listener)
+      ws.current!.removeEventListener('message', handleSocketMessage)
     }
   }, [ready])
 

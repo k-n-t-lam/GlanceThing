@@ -20,7 +20,7 @@ let port: number | null = null
 export async function getServerPort() {
   if (port) return port
 
-  port = isDev() ? 1337 : await findOpenPort()
+  port = isDev() ? 8000 : await findOpenPort()
 
   return port
 }
@@ -54,9 +54,9 @@ export async function startServer() {
       ws.on('message', async msg => {
         const d = safeParse(msg.toString())
         if (!d) return
-        const { type, action, data } = d
+        const { type, action, data, callbackId } = d
         log(
-          `Received ${type} ${action ?? ''}`,
+          `Received ${type} ${action ?? ''} ${callbackId ? '(with callback)' : ''}`,
           'WebSocketServer',
           LogLevel.DEBUG
         )

@@ -308,7 +308,7 @@ export async function forwardSocketServer(device: string | null) {
   const adb = await getAdbExecutable()
   const port = await getServerPort()
 
-  await execAsync(`${adb} -s ${device} reverse tcp:1337 tcp:${port}`)
+  await execAsync(`${adb} -s ${device} reverse tcp:8000 tcp:${port}`)
 
   log('Forwarded socket server!', 'adb', LogLevel.DEBUG)
 }
