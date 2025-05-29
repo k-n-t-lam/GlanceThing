@@ -3,6 +3,7 @@ import { log } from '../utils.js'
 
 import { PlaybackData, RepeatMode } from '../../types/Playback.js'
 import { createRequire } from 'node:module'
+import axios from 'axios'
 
 declare class NowPlaying {
   constructor(
@@ -114,6 +115,15 @@ function importAddon() {
     } catch (e) {
       log('Failed to import native addon', 'Native')
       return null
+    }
+  } else if (process.platform === 'linux') {
+    if (process.arch === 'x64') {
+      try {
+        return require('node-nowplaying-linux-x64-gnu')
+      } catch (e) {
+        log('Failed to import native addon', 'Native')
+        return null
+      }
     }
   }
 
@@ -259,14 +269,23 @@ class NativeHandler extends BasePlaybackHandler {
   }
 
   async getImage(): Promise<Buffer | null> {
-    if (!this.current?.thumbnail) return null
+    const thumb = this.current?.thumbnail
+    if (!thumb) return null
 
-    const base64 = this.current.thumbnail.replace(
-      /^data:image\/\w+;base64,/,
-      ''
-    )
-    const buffer = Buffer.from(base64, 'base64')
-    return buffer
+    if (thumb.startsWith('data:image')) {
+      const base64 = thumb.replace(/^data:image\/\w+;base64,/, '')
+      const buffer = Buffer.from(base64, 'base64')
+      return buffer
+    } else if (
+      thumb.startsWith('https://') ||
+      thumb.startsWith('http://')
+    ) {
+      const res = await axios.get(thumb, {
+        responseType: 'arraybuffer'
+      })
+
+      return res.data
+    } else return null
   }
 }
 
